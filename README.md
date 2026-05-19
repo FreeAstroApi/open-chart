@@ -136,7 +136,7 @@ Open [http://localhost:3000](http://localhost:3000).
   - Calls upstream natal endpoint (`include_minor=true`)
 - `POST /api/natal/chart-svg`
   - Validates payload + chart config
-  - Calls upstream experimental SVG endpoint
+  - Calls upstream natal chart SVG endpoint
 
 Error handling includes mapped responses for validation, auth, rate-limit, timeout, network, and upstream schema mismatch scenarios.
 

@@ -225,7 +225,7 @@ export async function calculateChartSvg(payload: NatalRequestPayload): Promise<s
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${FREE_ASTRO_BASE_URL}/natal/experimental`, {
+    const response = await fetch(`${FREE_ASTRO_BASE_URL}/natal/chart/`, {
       method: "POST",
       cache: "no-store",
       signal: controller.signal,
