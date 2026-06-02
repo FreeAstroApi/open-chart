@@ -13,6 +13,9 @@ Use these classes in your theme CSS (`Appearance > Customize > Additional CSS`) 
 - `.astrology-suite-output`
   - Purpose: Results/output container.
   - Rendered in: all blocks.
+- `.astrology-suite-ephemeris`
+  - Purpose: Ephemeris workbench wrapper.
+  - Rendered in: `astrology-suite/ephemeris`.
 
 Legacy `.wp-block-openastro-widget` and `.openastro-*` classes remain supported for existing pages and custom CSS.
 
@@ -100,8 +103,8 @@ Example:
   - Purpose: Shared report/sign/chart card panel.
   - Rendered in: report, chart, and simple-sign outputs.
 - `.astrology-suite-access-note`
-  - Purpose: Access-state message shown when the current visitor cannot use protected calculation routes.
-  - Rendered in: all blocks when the viewer is not logged in with content-editing permission.
+  - Purpose: Access-state message shown when public calculations are disabled and the current visitor cannot use calculation routes.
+  - Rendered in: all blocks when public calculations are disabled and the viewer is not logged in with content-editing permission.
 - `.astrology-suite-planet-item`
   - Purpose: Per-planet interpretation item.
   - Rendered in: report modes.
@@ -158,6 +161,47 @@ Example:
 }
 ```
 
+## Ephemeris
+
+- `.astrology-suite-ephemeris-toolbar`
+  - Purpose: Month/year, zodiac, city, refresh, and download toolbar.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-filter`
+  - Purpose: Body selector panel.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-chip`
+  - Purpose: Selectable body chip.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-table-card`
+  - Purpose: Ephemeris table frame.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-table`
+  - Purpose: Monthly grid table.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-table-meta`
+  - Purpose: Time basis label in the ephemeris table header.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-row-badge`
+  - Purpose: Table row count badge.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-row`
+  - Purpose: Table row; current day also receives `.is-today`.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-cell`
+  - Purpose: Planet/body table value; retrograde, ingress, and station cells also receive `.is-retrograde`, `.is-ingress`, or `.is-station`.
+  - Rendered in: `astrology-suite/ephemeris`.
+- `.astrology-suite-ephemeris-glyph`
+  - Purpose: Planet/point glyph inside chips and headers.
+  - Rendered in: `astrology-suite/ephemeris`.
+
+Example:
+
+```css
+.astrology-suite-ephemeris-table {
+  min-width: 80rem;
+}
+```
+
 ## Typography Variables
 
 Astrology Suite for FreeAstroAPI exposes CSS variables on `.wp-block-astrology-suite-widget`:
@@ -182,6 +226,23 @@ Astrology Suite for FreeAstroAPI exposes CSS variables on `.wp-block-astrology-s
 - `--astrology-suite-label-color`
 - `--astrology-suite-label-weight`
 - `--astrology-suite-focus-ring`
+
+## Ephemeris Table Variables
+
+The Ephemeris Style settings tab writes these variables on `.wp-block-astrology-suite-widget`:
+
+- `--astrology-suite-ephemeris-table-bg`
+- `--astrology-suite-ephemeris-table-text`
+- `--astrology-suite-ephemeris-table-border`
+- `--astrology-suite-ephemeris-header-bg`
+- `--astrology-suite-ephemeris-header-text`
+- `--astrology-suite-ephemeris-badge-bg`
+- `--astrology-suite-ephemeris-badge-text`
+- `--astrology-suite-ephemeris-today-bg`
+- `--astrology-suite-ephemeris-today-accent`
+- `--astrology-suite-ephemeris-retrograde`
+- `--astrology-suite-ephemeris-ingress`
+- `--astrology-suite-ephemeris-station`
 
 Legacy `--openastro-*` variables remain supported as fallbacks.
 

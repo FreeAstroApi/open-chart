@@ -17,6 +17,7 @@ class Plugin
     private const UPSTREAM_SUPPORT_URL = 'https://www.freeastroapi.com/contact';
     private const UPSTREAM_CHART_DESIGNER_URL = 'https://www.freeastroapi.com/dashboard/chart-designer';
     private const UPSTREAM_CHART_DOCS_URL = 'https://www.freeastroapi.com/docs/western/chart-svg';
+    private const UPSTREAM_EPHEMERIS_DOCS_URL = 'https://www.freeastroapi.com/docs/western/ephemeris';
     private const CALCULATION_CAPABILITY = 'edit_posts';
     private const BLOCK_NAMESPACE = 'astrology-suite';
     private const LEGACY_BLOCK_NAMESPACE = 'openastro';
@@ -33,9 +34,11 @@ class Plugin
         'simple-sign-moon',
         'simple-sign-rising',
         'simple-sign-midheaven',
+        'ephemeris',
     ];
 
     public const OPTION_API_KEY = 'openastro_api_key';
+    public const OPTION_PUBLIC_CALCULATIONS = 'openastro_public_calculations';
     public const OPTION_REPORT_DETAIL = 'openastro_report_detail';
     public const OPTION_REPORT_MAX_PLANETS = 'openastro_report_max_planets';
     public const OPTION_REPORT_MAX_ASPECTS = 'openastro_report_max_aspects';
@@ -59,7 +62,12 @@ class Plugin
     public const OPTION_OBJ_PART_OF_FORTUNE = 'openastro_obj_part_of_fortune';
     public const OPTION_STYLE_SHOW_BORDER = 'openastro_style_show_border';
     public const OPTION_STYLE_BG_COLOR = 'openastro_style_bg_color';
+    public const OPTION_STYLE_TRANSPARENT_BG = 'openastro_style_transparent_bg';
     public const OPTION_STYLE_TEXT_COLOR = 'openastro_style_text_color';
+    public const OPTION_STYLE_SHOW_HISTORY = 'openastro_style_show_history';
+    public const OPTION_STYLE_HISTORY_BG_COLOR = 'openastro_style_history_bg_color';
+    public const OPTION_STYLE_HISTORY_BORDER_COLOR = 'openastro_style_history_border_color';
+    public const OPTION_STYLE_HISTORY_TEXT_COLOR = 'openastro_style_history_text_color';
     public const OPTION_STYLE_INPUT_BORDER_RADIUS = 'openastro_style_input_border_radius';
     public const OPTION_STYLE_INPUT_BORDER_COLOR = 'openastro_style_input_border_color';
     public const OPTION_STYLE_INPUT_BG_COLOR = 'openastro_style_input_bg_color';
@@ -74,6 +82,18 @@ class Plugin
     public const OPTION_STYLE_FOCUS_RING_COLOR = 'openastro_style_focus_ring_color';
     public const OPTION_STYLE_ASTRO_FONT_SIZE = 'openastro_style_astro_font_size';
     public const OPTION_STYLE_ASTRO_FONT_COLOR = 'openastro_style_astro_font_color';
+    public const OPTION_EPHEMERIS_TABLE_BG_COLOR = 'openastro_ephemeris_table_bg_color';
+    public const OPTION_EPHEMERIS_TABLE_TEXT_COLOR = 'openastro_ephemeris_table_text_color';
+    public const OPTION_EPHEMERIS_TABLE_BORDER_COLOR = 'openastro_ephemeris_table_border_color';
+    public const OPTION_EPHEMERIS_TABLE_HEADER_BG_COLOR = 'openastro_ephemeris_table_header_bg_color';
+    public const OPTION_EPHEMERIS_TABLE_HEADER_TEXT_COLOR = 'openastro_ephemeris_table_header_text_color';
+    public const OPTION_EPHEMERIS_TABLE_BADGE_BG_COLOR = 'openastro_ephemeris_table_badge_bg_color';
+    public const OPTION_EPHEMERIS_TABLE_BADGE_TEXT_COLOR = 'openastro_ephemeris_table_badge_text_color';
+    public const OPTION_EPHEMERIS_TABLE_TODAY_BG_COLOR = 'openastro_ephemeris_table_today_bg_color';
+    public const OPTION_EPHEMERIS_TABLE_TODAY_ACCENT_COLOR = 'openastro_ephemeris_table_today_accent_color';
+    public const OPTION_EPHEMERIS_RETROGRADE_COLOR = 'openastro_ephemeris_retrograde_color';
+    public const OPTION_EPHEMERIS_INGRESS_COLOR = 'openastro_ephemeris_ingress_color';
+    public const OPTION_EPHEMERIS_STATION_COLOR = 'openastro_ephemeris_station_color';
     public const OPTION_TYPO_H2 = 'openastro_typo_h2';
     public const OPTION_TYPO_H3 = 'openastro_typo_h3';
     public const OPTION_TYPO_H4 = 'openastro_typo_h4';
@@ -90,6 +110,7 @@ class Plugin
         add_action('admin_init', [__CLASS__, 'register_settings']);
         add_action('admin_init', [__CLASS__, 'add_privacy_policy_content']);
         add_action('admin_menu', [__CLASS__, 'register_menu']);
+        add_action('admin_enqueue_scripts', [__CLASS__, 'enqueue_admin_assets']);
         add_action('admin_notices', [__CLASS__, 'maybe_render_block_migration_notice']);
         add_action('admin_post_openastro_migrate_blocks', [__CLASS__, 'handle_block_migration']);
         add_action('rest_api_init', [__CLASS__, 'register_routes']);
@@ -98,6 +119,7 @@ class Plugin
         add_action('wp_enqueue_scripts', [__CLASS__, 'maybe_enqueue_shortcode_assets']);
         add_action('wp_footer', [__CLASS__, 'maybe_print_late_shortcode_styles'], 1);
         add_action('wp_ajax_astrology_suite_chart_preview', [__CLASS__, 'render_chart_preview_image']);
+        add_action('wp_ajax_astrology_suite_style_chart_preview_svg', [__CLASS__, 'render_style_chart_preview_svg']);
         add_filter('plugin_action_links_' . plugin_basename(OPENASTRO_SUITE_FILE), [__CLASS__, 'add_plugin_action_links']);
     }
 
@@ -127,6 +149,16 @@ class Plugin
     private static function current_user_can_calculate(): bool
     {
         return current_user_can(self::CALCULATION_CAPABILITY);
+    }
+
+    private static function public_calculations_enabled(): bool
+    {
+        return (bool) self::get_option_value(self::OPTION_PUBLIC_CALCULATIONS, true);
+    }
+
+    private static function current_request_can_calculate(): bool
+    {
+        return self::public_calculations_enabled() || self::current_user_can_calculate();
     }
 
     private static function chart_theme_presets(): array
@@ -821,7 +853,7 @@ JSON
 
     private static function frontend_access_message(): string
     {
-        return __('This astrology form is available only to logged-in users who can edit posts on this site.', 'astrology-suite-freeastroapi');
+        return __('This astrology form is disabled for public visitors. Enable public calculations in Astrology Suite API settings, or log in with permission to edit posts.', 'astrology-suite-freeastroapi');
     }
 
     public static function migrate_legacy_options(): void
@@ -832,6 +864,7 @@ JSON
 
         $keys = [
             self::OPTION_API_KEY,
+            self::OPTION_PUBLIC_CALCULATIONS,
             self::OPTION_REPORT_DETAIL,
             self::OPTION_REPORT_MAX_PLANETS,
             self::OPTION_REPORT_MAX_ASPECTS,
@@ -909,6 +942,21 @@ JSON
         return in_array($candidate, ['normal', '500', '600', '700'], true) ? $candidate : 'normal';
     }
 
+    public static function sanitize_api_key($value): string
+    {
+        $raw = trim((string) wp_unslash($value));
+        if ($raw === '') {
+            return (string) get_option(self::OPTION_API_KEY, '');
+        }
+
+        return sanitize_text_field($raw);
+    }
+
+    public static function sanitize_public_calculations($value): bool
+    {
+        return (bool) $value;
+    }
+
     public static function sanitize_chart_theme($value): string
     {
         $candidate = sanitize_key((string) $value);
@@ -964,6 +1012,12 @@ JSON
 
     private static function sanitize_chart_body_json_for_option($value, ?string $option = null): string
     {
+        if ($option !== null) {
+            if (self::chart_body_reset_requested($option) || !self::chart_body_customize_requested($option)) {
+                return '';
+            }
+        }
+
         $raw = trim((string) wp_unslash($value));
         if ($raw === '') {
             return '';
@@ -1001,6 +1055,30 @@ JSON
         $clean = self::normalize_chart_body_for_api($clean);
 
         return (string) wp_json_encode($clean, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    private static function chart_body_customize_requested(string $option): bool
+    {
+        return self::posted_checkbox_is_checked($option . '_enabled');
+    }
+
+    private static function chart_body_reset_requested(string $option): bool
+    {
+        return self::posted_checkbox_is_checked($option . '_reset');
+    }
+
+    private static function posted_checkbox_is_checked(string $key): bool
+    {
+        if (!isset($_POST[$key])) {
+            return false;
+        }
+
+        $value = wp_unslash($_POST[$key]);
+        if (is_array($value)) {
+            return false;
+        }
+
+        return in_array(strtolower((string) $value), ['1', 'true', 'on', 'yes'], true);
     }
 
     private static function sanitize_chart_config_value($value, int $depth = 0)
@@ -1046,13 +1124,27 @@ JSON
 
     public static function register_settings(): void
     {
-        register_setting('openastro_settings_group', self::OPTION_API_KEY, [
+        $api_group = self::settings_group_for_tab('api');
+        $report_group = self::settings_group_for_tab('report');
+        $chart_group = self::settings_group_for_tab('chart');
+        $objects_group = self::settings_group_for_tab('objects');
+        $style_group = self::settings_group_for_tab('style');
+        $ephemeris_group = self::settings_group_for_tab('ephemeris');
+        $typography_group = self::settings_group_for_tab('typography');
+
+        register_setting($api_group, self::OPTION_API_KEY, [
             'type' => 'string',
-            'sanitize_callback' => static fn($v) => trim(sanitize_text_field((string) $v)),
+            'sanitize_callback' => [__CLASS__, 'sanitize_api_key'],
             'default' => '',
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_REPORT_DETAIL, [
+        register_setting($api_group, self::OPTION_PUBLIC_CALCULATIONS, [
+            'type' => 'boolean',
+            'sanitize_callback' => [__CLASS__, 'sanitize_public_calculations'],
+            'default' => true,
+        ]);
+
+        register_setting($report_group, self::OPTION_REPORT_DETAIL, [
             'type' => 'string',
             'sanitize_callback' => static function ($value): string {
                 $val = sanitize_key((string) $value);
@@ -1061,98 +1153,98 @@ JSON
             'default' => 'full',
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_REPORT_MAX_PLANETS, [
+        register_setting($report_group, self::OPTION_REPORT_MAX_PLANETS, [
             'type' => 'integer',
             'sanitize_callback' => static fn($v): int => max(1, min(20, (int) $v)),
             'default' => 13,
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_REPORT_MAX_ASPECTS, [
+        register_setting($report_group, self::OPTION_REPORT_MAX_ASPECTS, [
             'type' => 'integer',
             'sanitize_callback' => static fn($v): int => max(1, min(100, (int) $v)),
             'default' => 40,
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_REPORT_SHOW_TABLES, [
+        register_setting($report_group, self::OPTION_REPORT_SHOW_TABLES, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_REPORT_SHOW_ANGLES, [
+        register_setting($report_group, self::OPTION_REPORT_SHOW_ANGLES, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_CHART_SHOW_PRINT_BUTTON, [
+        register_setting($report_group, self::OPTION_CHART_SHOW_PRINT_BUTTON, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_CHART_THEME, [
+        register_setting($chart_group, self::OPTION_CHART_THEME, [
             'type' => 'string',
             'sanitize_callback' => [__CLASS__, 'sanitize_chart_theme'],
             'default' => 'current',
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_CHART_CUSTOM_CONFIG, [
+        register_setting($chart_group, self::OPTION_CHART_CUSTOM_CONFIG, [
             'type' => 'string',
             'sanitize_callback' => [__CLASS__, 'sanitize_chart_custom_config'],
             'default' => '',
         ]);
 
         foreach (self::chart_theme_body_option_names() as $body_option) {
-            register_setting('openastro_settings_group', $body_option, [
+            register_setting($chart_group, $body_option, [
                 'type' => 'string',
                 'sanitize_callback' => static fn($value): string => self::sanitize_chart_body_json_for_option($value, $body_option),
                 'default' => '',
             ]);
         }
 
-        register_setting('openastro_settings_group', self::OPTION_OBJ_ASC, [
+        register_setting($objects_group, self::OPTION_OBJ_ASC, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
-        register_setting('openastro_settings_group', self::OPTION_OBJ_MC, [
+        register_setting($objects_group, self::OPTION_OBJ_MC, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
-        register_setting('openastro_settings_group', self::OPTION_OBJ_CHIRON, [
+        register_setting($objects_group, self::OPTION_OBJ_CHIRON, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
-        register_setting('openastro_settings_group', self::OPTION_OBJ_LILITH, [
+        register_setting($objects_group, self::OPTION_OBJ_LILITH, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
-        register_setting('openastro_settings_group', self::OPTION_OBJ_TRUE_NODE, [
+        register_setting($objects_group, self::OPTION_OBJ_TRUE_NODE, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
-        register_setting('openastro_settings_group', self::OPTION_OBJ_MEAN_NODE, [
+        register_setting($objects_group, self::OPTION_OBJ_MEAN_NODE, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
-        register_setting('openastro_settings_group', self::OPTION_OBJ_PART_OF_FORTUNE, [
+        register_setting($objects_group, self::OPTION_OBJ_PART_OF_FORTUNE, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
 
-        register_setting('openastro_settings_group', self::OPTION_STYLE_SHOW_BORDER, [
+        register_setting($style_group, self::OPTION_STYLE_SHOW_BORDER, [
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
         ]);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_BG_COLOR, [
+        register_setting($style_group, self::OPTION_STYLE_BG_COLOR, [
             'type' => 'string',
             'sanitize_callback' => static function ($v): string {
                 $value = trim((string) $v);
@@ -1160,7 +1252,12 @@ JSON
             },
             'default' => '#ffffff',
         ]);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_TEXT_COLOR, [
+        register_setting($style_group, self::OPTION_STYLE_TRANSPARENT_BG, [
+            'type' => 'boolean',
+            'sanitize_callback' => static fn($v): bool => (bool) $v,
+            'default' => false,
+        ]);
+        register_setting($style_group, self::OPTION_STYLE_TEXT_COLOR, [
             'type' => 'string',
             'sanitize_callback' => static function ($v): string {
                 $value = trim((string) $v);
@@ -1168,41 +1265,71 @@ JSON
             },
             'default' => '#111111',
         ]);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_INPUT_BORDER_RADIUS, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_radius_size'], 'default' => 6]);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_INPUT_BORDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#d1d5db']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_INPUT_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#ffffff']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_INPUT_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_INPUT_PLACEHOLDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#6b7280']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_BUTTON_BORDER_RADIUS, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_radius_size'], 'default' => 6]);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_BUTTON_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111827']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_BUTTON_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#ffffff']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_BUTTON_BORDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111827']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_LABEL_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_LABEL_WEIGHT, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_label_weight'], 'default' => '600']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_FOCUS_RING_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#2563eb']);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_ASTRO_FONT_SIZE, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 20]);
-        register_setting('openastro_settings_group', self::OPTION_STYLE_ASTRO_FONT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($style_group, self::OPTION_STYLE_SHOW_HISTORY, [
+            'type' => 'boolean',
+            'sanitize_callback' => static fn($v): bool => (bool) $v,
+            'default' => true,
+        ]);
+        register_setting($style_group, self::OPTION_STYLE_HISTORY_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#f9fafb']);
+        register_setting($style_group, self::OPTION_STYLE_HISTORY_BORDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#e5e7eb']);
+        register_setting($style_group, self::OPTION_STYLE_HISTORY_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($style_group, self::OPTION_STYLE_INPUT_BORDER_RADIUS, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_radius_size'], 'default' => 6]);
+        register_setting($style_group, self::OPTION_STYLE_INPUT_BORDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#d1d5db']);
+        register_setting($style_group, self::OPTION_STYLE_INPUT_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#ffffff']);
+        register_setting($style_group, self::OPTION_STYLE_INPUT_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($style_group, self::OPTION_STYLE_INPUT_PLACEHOLDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#6b7280']);
+        register_setting($style_group, self::OPTION_STYLE_BUTTON_BORDER_RADIUS, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_radius_size'], 'default' => 6]);
+        register_setting($style_group, self::OPTION_STYLE_BUTTON_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111827']);
+        register_setting($style_group, self::OPTION_STYLE_BUTTON_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#ffffff']);
+        register_setting($style_group, self::OPTION_STYLE_BUTTON_BORDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111827']);
+        register_setting($style_group, self::OPTION_STYLE_LABEL_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($style_group, self::OPTION_STYLE_LABEL_WEIGHT, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_label_weight'], 'default' => '600']);
+        register_setting($style_group, self::OPTION_STYLE_FOCUS_RING_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#2563eb']);
+        register_setting($style_group, self::OPTION_STYLE_ASTRO_FONT_SIZE, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 20]);
+        register_setting($style_group, self::OPTION_STYLE_ASTRO_FONT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
 
-        register_setting('openastro_settings_group', self::OPTION_TYPO_H2, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 28]);
-        register_setting('openastro_settings_group', self::OPTION_TYPO_H3, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 22]);
-        register_setting('openastro_settings_group', self::OPTION_TYPO_H4, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 18]);
-        register_setting('openastro_settings_group', self::OPTION_TYPO_BODY, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 16]);
-        register_setting('openastro_settings_group', self::OPTION_TYPO_TABLE, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 14]);
-        register_setting('openastro_settings_group', self::OPTION_TYPO_INPUT, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 16]);
-        register_setting('openastro_settings_group', self::OPTION_TYPO_BUTTON, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 16]);
-        register_setting('openastro_settings_group', self::OPTION_TYPO_META, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 13]);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#ffffff']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_BORDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#e5e7eb']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_HEADER_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#f8fafc']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_HEADER_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_BADGE_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#f8fafc']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_BADGE_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#475569']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_TODAY_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#f8fafc']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_TODAY_ACCENT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#2563eb']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_RETROGRADE_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#b91c1c']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_INGRESS_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#1d4ed8']);
+        register_setting($ephemeris_group, self::OPTION_EPHEMERIS_STATION_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#a16207']);
+
+        register_setting($typography_group, self::OPTION_TYPO_H2, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 28]);
+        register_setting($typography_group, self::OPTION_TYPO_H3, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 22]);
+        register_setting($typography_group, self::OPTION_TYPO_H4, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 18]);
+        register_setting($typography_group, self::OPTION_TYPO_BODY, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 16]);
+        register_setting($typography_group, self::OPTION_TYPO_TABLE, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 14]);
+        register_setting($typography_group, self::OPTION_TYPO_INPUT, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 16]);
+        register_setting($typography_group, self::OPTION_TYPO_BUTTON, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 16]);
+        register_setting($typography_group, self::OPTION_TYPO_META, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 13]);
 
         add_settings_section('openastro_settings_main', __('Astrology Suite', 'astrology-suite-freeastroapi'), '__return_false', 'openastro-settings');
         add_settings_section('openastro_report_settings', __('Report Customization', 'astrology-suite-freeastroapi'), '__return_false', 'openastro-settings');
         add_settings_section('openastro_chart_settings', __('Custom Chart Themes', 'astrology-suite-freeastroapi'), '__return_false', 'openastro-settings');
         add_settings_section('openastro_objects_settings', __('Objects & Points', 'astrology-suite-freeastroapi'), '__return_false', 'openastro-settings');
         add_settings_section('openastro_style_settings', __('Style Customization', 'astrology-suite-freeastroapi'), '__return_false', 'openastro-settings');
+        add_settings_section('openastro_ephemeris_style_settings', __('Ephemeris Table Styling', 'astrology-suite-freeastroapi'), '__return_false', 'openastro-settings');
         add_settings_section('openastro_typography_settings', __('Typography Customization', 'astrology-suite-freeastroapi'), '__return_false', 'openastro-settings');
 
         add_settings_field(
             self::OPTION_API_KEY,
             __('API key', 'astrology-suite-freeastroapi'),
             [__CLASS__, 'render_api_key_field'],
+            'openastro-settings',
+            'openastro_settings_main'
+        );
+
+        add_settings_field(
+            self::OPTION_PUBLIC_CALCULATIONS,
+            __('Public calculations', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_public_calculations_field'],
             'openastro-settings',
             'openastro_settings_main'
         );
@@ -1287,9 +1414,16 @@ JSON
         add_settings_field(self::OPTION_OBJ_MEAN_NODE, __('Include Mean Node', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_obj_mean_node_field'], 'openastro-settings', 'openastro_objects_settings');
         add_settings_field(self::OPTION_OBJ_PART_OF_FORTUNE, __('Include Part of Fortune', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_obj_part_of_fortune_field'], 'openastro-settings', 'openastro_objects_settings');
 
+        add_settings_field('openastro_style_preview', __('Preview', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_preview_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_SHOW_BORDER, __('Show container border', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_show_border_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_BG_COLOR, __('Plugin background color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_TRANSPARENT_BG, __('No plugin background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_transparent_bg_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_TEXT_COLOR, __('Plugin text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_text_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_style_group_history', __('Past inputs', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_group_history'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_SHOW_HISTORY, __('Show Past inputs', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_show_history_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_HISTORY_BG_COLOR, __('Past inputs background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_history_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_HISTORY_BORDER_COLOR, __('Past inputs border color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_history_border_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_HISTORY_TEXT_COLOR, __('Past inputs text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_history_text_color_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field('openastro_style_group_input', __('Input', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_group_input'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_INPUT_BORDER_RADIUS, __('Input border radius (px)', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_input_border_radius_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_INPUT_BORDER_COLOR, __('Input border color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_input_border_color_field'], 'openastro-settings', 'openastro_style_settings');
@@ -1307,6 +1441,19 @@ JSON
         add_settings_field(self::OPTION_STYLE_FOCUS_RING_COLOR, __('Focus ring color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_focus_ring_color_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_ASTRO_FONT_SIZE, __('Glyph font size (px)', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_astro_font_size_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_ASTRO_FONT_COLOR, __('Glyph font color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_astro_font_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_ephemeris_preview', __('Preview', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_style_preview_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_BG_COLOR, __('Table background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_bg_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR, __('Table text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_text_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_BORDER_COLOR, __('Grid/border color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_border_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_HEADER_BG_COLOR, __('Header background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_header_bg_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_HEADER_TEXT_COLOR, __('Header text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_header_text_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_BADGE_BG_COLOR, __('Rows badge background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_badge_bg_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_BADGE_TEXT_COLOR, __('Rows badge text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_badge_text_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_TODAY_BG_COLOR, __('Current day row background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_today_bg_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_TABLE_TODAY_ACCENT_COLOR, __('Current day accent color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_today_accent_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_RETROGRADE_COLOR, __('Retrograde text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_retrograde_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_INGRESS_COLOR, __('Ingress text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_ingress_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
+        add_settings_field(self::OPTION_EPHEMERIS_STATION_COLOR, __('Station text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_station_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
         add_settings_field(self::OPTION_TYPO_H2, __('Title H2 size (px)', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_typography_h2_field'], 'openastro-settings', 'openastro_typography_settings');
         add_settings_field(self::OPTION_TYPO_H3, __('Section H3 size (px)', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_typography_h3_field'], 'openastro-settings', 'openastro_typography_settings');
         add_settings_field(self::OPTION_TYPO_H4, __('Subsection H4 size (px)', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_typography_h4_field'], 'openastro-settings', 'openastro_typography_settings');
@@ -1347,6 +1494,16 @@ JSON
         self::redirect_legacy_settings_request();
     }
 
+    public static function enqueue_admin_assets(string $hook): void
+    {
+        if ($hook !== 'settings_page_' . self::SETTINGS_PAGE_SLUG) {
+            return;
+        }
+
+        self::register_widget_assets();
+        wp_enqueue_style('openastro-suite-widgets-style');
+    }
+
     public static function redirect_legacy_settings_request(): void
     {
         if (!current_user_can('manage_options')) {
@@ -1375,10 +1532,19 @@ JSON
 
     public static function render_api_key_field(): void
     {
-        $value = (string) self::get_option_value(self::OPTION_API_KEY, '');
-        echo '<input type="password" class="regular-text" name="' . esc_attr(self::OPTION_API_KEY) . '" value="' . esc_attr($value) . '" autocomplete="off" />';
+        $has_key = (string) self::get_option_value(self::OPTION_API_KEY, '') !== '';
+        echo '<input type="password" class="regular-text" name="' . esc_attr(self::OPTION_API_KEY) . '" value="" autocomplete="new-password" placeholder="' . esc_attr__('Leave blank to keep current key', 'astrology-suite-freeastroapi') . '" />';
+        echo '<p class="description">' . esc_html($has_key ? __('A FreeAstroAPI key is currently saved. Leave this field blank to keep it, or enter a new key to replace it.', 'astrology-suite-freeastroapi') : __('No FreeAstroAPI key is currently saved. Enter one to enable chart/report calculations.', 'astrology-suite-freeastroapi')) . '</p>';
         echo '<p class="description">' . esc_html__('Get a free API key from freeastroapi.com.', 'astrology-suite-freeastroapi') . '</p>';
-        echo '<p class="description">' . esc_html__('The plugin sends widget requests to FreeAstroAPI. See the Help tab for external-service details, privacy links, and access limits.', 'astrology-suite-freeastroapi') . '</p>';
+        echo '<p class="description">' . esc_html__('The key is used only in server-to-server requests to FreeAstroAPI. It is not exposed to frontend visitors.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_public_calculations_field(): void
+    {
+        $value = self::public_calculations_enabled();
+        echo '<input type="hidden" name="' . esc_attr(self::OPTION_PUBLIC_CALCULATIONS) . '" value="0" />';
+        echo '<label><input type="checkbox" name="' . esc_attr(self::OPTION_PUBLIC_CALCULATIONS) . '" value="1" ' . checked($value, true, false) . ' /> ' . esc_html__('Allow visitors who are not logged in to use astrology forms.', 'astrology-suite-freeastroapi') . '</label>';
+        echo '<p class="description">' . esc_html__('Public requests still go through this WordPress site, use the saved API key server-side, and are rate-limited per visitor. Turn this off to restrict calculations to logged-in users who can edit posts.', 'astrology-suite-freeastroapi') . '</p>';
     }
 
     public static function add_privacy_policy_content(): void
@@ -1389,7 +1555,7 @@ JSON
 
         $policy = '<p>' . esc_html__('Astrology Suite for FreeAstroAPI connects to FreeAstroAPI to autocomplete cities and generate astrology calculations.', 'astrology-suite-freeastroapi') . '</p>';
         $policy .= '<p>' . esc_html__('When someone types into the city field, the plugin sends the typed city query and optional country filter to FreeAstroAPI over HTTPS so matching cities and timezones can be returned.', 'astrology-suite-freeastroapi') . '</p>';
-        $policy .= '<p>' . esc_html__('When an authenticated user with permission to edit posts submits a natal chart, report, or simple-sign form, the plugin sends the submitted birth data and calculation options to FreeAstroAPI over HTTPS. This may include the optional name field, birth date, birth time, city name, latitude, longitude, timezone, interpretation settings, and the requested calculation mode. The site’s configured FreeAstroAPI key is also sent in the server-to-server request header for these protected calculation requests.', 'astrology-suite-freeastroapi') . '</p>';
+        $policy .= '<p>' . esc_html__('When a visitor submits a natal chart, report, simple-sign, or ephemeris form while public calculations are enabled, or when an authenticated editor submits while public calculations are disabled, the plugin sends the submitted astrology data and calculation options to FreeAstroAPI over HTTPS. This may include the optional name field, birth date, birth time, city name, latitude, longitude, timezone, interpretation settings, selected ephemeris month/year, selected bodies, zodiac type, and the requested calculation mode. The site’s configured FreeAstroAPI key is also sent in the server-to-server request header and is not exposed to visitors.', 'astrology-suite-freeastroapi') . '</p>';
         $policy .= '<p>' . esc_html__('The plugin does not store visitor birth data in WordPress by default. The optional “Past inputs” feature stores the most recent successful requests in the visitor’s own browser local storage only.', 'astrology-suite-freeastroapi') . '</p>';
         $policy .= '<p>' . sprintf(
             wp_kses(
@@ -1529,10 +1695,26 @@ JSON
                 <?php foreach ($option_names as $theme => $option) : ?>
                     <?php
                     $saved = (string) self::get_option_value($option, '');
-                    $body = $saved !== '' ? $saved : (string) wp_json_encode(self::default_chart_body_for_theme($theme), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                    $is_custom = trim($saved) !== '';
+                    $body = $is_custom ? $saved : (string) wp_json_encode(self::default_chart_body_for_theme($theme), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                    $label = $labels[$theme] ?? $theme;
                     ?>
                     <details class="astrology-suite-chart-body-item">
-                        <summary><?php echo esc_html(sprintf(__('%s chart body', 'astrology-suite-freeastroapi'), $labels[$theme] ?? $theme)); ?></summary>
+                        <summary><?php echo esc_html(sprintf(__('%s chart body', 'astrology-suite-freeastroapi'), $label)); ?></summary>
+                        <p class="description">
+                            <?php esc_html_e('Preset body shown below is not saved unless "Customize this body" is checked. Leave it unchecked to keep the theme preset and dynamic object/display fallbacks.', 'astrology-suite-freeastroapi'); ?>
+                        </p>
+                        <p>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr($option . '_enabled'); ?>" value="1" <?php checked($is_custom, true); ?> />
+                                <?php esc_html_e('Customize this body', 'astrology-suite-freeastroapi'); ?>
+                            </label>
+                            &nbsp;
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr($option . '_reset'); ?>" value="1" />
+                                <?php esc_html_e('Reset to preset on save', 'astrology-suite-freeastroapi'); ?>
+                            </label>
+                        </p>
                         <textarea
                             name="<?php echo esc_attr($option); ?>"
                             rows="14"
@@ -1659,6 +1841,21 @@ JSON
         );
     }
 
+    private static function style_chart_preview_svg_url(): string
+    {
+        $theme = self::sanitize_chart_theme((string) self::get_option_value(self::OPTION_CHART_THEME, 'current'));
+        $body = self::selected_chart_body();
+        $hash = md5($theme . '|' . wp_json_encode($body));
+
+        return add_query_arg(
+            [
+                'action' => 'astrology_suite_style_chart_preview_svg',
+                'nonce' => wp_create_nonce('astrology_suite_style_chart_preview_svg_' . $hash),
+            ],
+            admin_url('admin-ajax.php')
+        );
+    }
+
     public static function render_chart_preview_image(): void
     {
         $theme = self::sanitize_chart_theme((string) filter_input(INPUT_GET, 'theme', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
@@ -1687,6 +1884,38 @@ JSON
 
         set_transient($cache_key, base64_encode($png), HOUR_IN_SECONDS);
         self::output_chart_preview_png($png);
+    }
+
+    public static function render_style_chart_preview_svg(): void
+    {
+        if (!current_user_can('manage_options')) {
+            status_header(403);
+            exit;
+        }
+
+        $theme = self::sanitize_chart_theme((string) self::get_option_value(self::OPTION_CHART_THEME, 'current'));
+        $body = self::selected_chart_body();
+        $hash = md5($theme . '|' . wp_json_encode($body));
+
+        if (!check_ajax_referer('astrology_suite_style_chart_preview_svg_' . $hash, 'nonce', false)) {
+            status_header(403);
+            exit;
+        }
+
+        $cache_key = 'astrology_suite_style_chart_preview_svg_' . $hash;
+        $cached = get_transient($cache_key);
+        if (is_string($cached) && $cached !== '') {
+            self::output_chart_preview_svg($cached);
+        }
+
+        $payload = self::chart_preview_payload($body, $theme, 'svg', 520);
+        $svg = self::request('POST', '/natal/chart/', $payload, true);
+        if (is_wp_error($svg)) {
+            self::output_chart_preview_error($svg->get_error_message());
+        }
+
+        set_transient($cache_key, $svg, HOUR_IN_SECONDS);
+        self::output_chart_preview_svg($svg);
     }
 
     private static function chart_preview_config(string $theme): array
@@ -1736,7 +1965,7 @@ JSON
         return $png;
     }
 
-    private static function chart_preview_payload(array $body, string $theme): array
+    private static function chart_preview_payload(array $body, string $theme, string $format = 'png', ?int $forced_size = 520): array
     {
         $theme = self::sanitize_chart_theme($theme);
         $payload = [
@@ -1758,7 +1987,7 @@ JSON
             'interpretation' => ['enable' => false],
         ];
 
-        return self::apply_chart_body($payload, $body, 'png', 520, self::chart_preview_config($theme));
+        return self::apply_chart_body($payload, $body, $format, $forced_size, self::chart_preview_config($theme));
     }
 
     private static function extract_png_response(string $body): string
@@ -1804,6 +2033,18 @@ JSON
         exit;
     }
 
+    private static function output_chart_preview_svg(string $svg): void
+    {
+        if ($svg === '') {
+            self::output_chart_preview_error(__('Chart preview unavailable.', 'astrology-suite-freeastroapi'));
+        }
+
+        nocache_headers();
+        header('Content-Type: image/svg+xml; charset=utf-8');
+        echo $svg;
+        exit;
+    }
+
     private static function output_chart_preview_error(string $message): void
     {
         $safe_message = esc_html($message);
@@ -1831,16 +2072,395 @@ JSON
 
     public static function render_style_show_border_field(): void { self::render_checkbox_field(self::OPTION_STYLE_SHOW_BORDER, __('Show border around plugin container.', 'astrology-suite-freeastroapi')); }
 
+    public static function render_style_preview_field(): void
+    {
+        self::render_style_preview_admin_styles();
+        $classes = 'wp-block-astrology-suite-widget astrology-suite-style-preview-widget';
+        if (!(bool) self::get_option_value(self::OPTION_STYLE_SHOW_BORDER, true)) {
+            $classes .= ' astrology-suite-no-border openastro-no-border';
+        }
+        if (!(bool) self::get_option_value(self::OPTION_STYLE_SHOW_HISTORY, true)) {
+            $classes .= ' astrology-suite-history-hidden';
+        }
+        ?>
+        <div class="astrology-suite-style-preview-shell">
+            <p class="description"><?php esc_html_e('Preview starts with the saved settings and updates as you edit the controls below. Save changes to keep the new style.', 'astrology-suite-freeastroapi'); ?></p>
+            <div class="<?php echo esc_attr($classes); ?>" style="<?php echo esc_attr(self::style_preview_inline_vars()); ?>">
+                <div class="astrology-suite-style-preview-grid">
+                    <section class="astrology-suite-style-preview-panel" aria-label="<?php echo esc_attr__('Input form preview', 'astrology-suite-freeastroapi'); ?>">
+                        <h3><?php esc_html_e('Input form', 'astrology-suite-freeastroapi'); ?></h3>
+                        <div class="openastro-form">
+                            <div class="openastro-form-header">
+                                <div class="openastro-load-recent-wrap">
+                                    <div class="openastro-load-recent-panel">
+                                        <label class="openastro-history-label openastro-load-recent-label" for="astrology-suite-style-preview-history"><?php esc_html_e('Past inputs', 'astrology-suite-freeastroapi'); ?></label>
+                                        <select id="astrology-suite-style-preview-history" class="openastro-history-select openastro-load-recent-select" aria-label="<?php echo esc_attr__('Load recent past inputs', 'astrology-suite-freeastroapi'); ?>">
+                                            <option><?php esc_html_e('Past inputs...', 'astrology-suite-freeastroapi'); ?></option>
+                                            <option><?php esc_html_e('Ada · Paris, FR · 1990-01-01', 'astrology-suite-freeastroapi'); ?></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label>
+                                <?php esc_html_e('Name', 'astrology-suite-freeastroapi'); ?>
+                                <input class="openastro-input" type="text" value="<?php echo esc_attr__('Ada Lovelace', 'astrology-suite-freeastroapi'); ?>" readonly />
+                            </label>
+
+                            <div class="astrology-suite-style-preview-row">
+                                <label>
+                                    <?php esc_html_e('Birth date', 'astrology-suite-freeastroapi'); ?>
+                                    <input class="openastro-input" type="text" value="1990-01-01" readonly />
+                                </label>
+                                <label>
+                                    <?php esc_html_e('Birth time', 'astrology-suite-freeastroapi'); ?>
+                                    <input class="openastro-input" type="text" value="12:00" readonly />
+                                </label>
+                            </div>
+
+                            <label class="openastro-city-field is-open">
+                                <?php esc_html_e('City', 'astrology-suite-freeastroapi'); ?>
+                                <input class="openastro-input openastro-city-input" type="text" value="<?php echo esc_attr__('Paris', 'astrology-suite-freeastroapi'); ?>" readonly />
+                                <span class="openastro-city-loading"><?php esc_html_e('2 suggestions', 'astrology-suite-freeastroapi'); ?></span>
+                                <div class="openastro-results">
+                                    <?php self::render_style_preview_city_result(__('Paris', 'astrology-suite-freeastroapi'), 'FR', 'Europe/Paris', '48.8566, 2.3522', true); ?>
+                                    <?php self::render_style_preview_city_result(__('Paris', 'astrology-suite-freeastroapi'), 'US', 'America/Chicago', '33.6609, -95.5555', false); ?>
+                                </div>
+                            </label>
+
+                            <label class="openastro-inline">
+                                <input type="checkbox" checked disabled />
+                                <?php esc_html_e('Include minor aspects', 'astrology-suite-freeastroapi'); ?>
+                            </label>
+
+                            <button class="openastro-btn" type="button"><?php esc_html_e('Generate', 'astrology-suite-freeastroapi'); ?></button>
+                            <p class="openastro-status"><?php esc_html_e('Ready to generate.', 'astrology-suite-freeastroapi'); ?></p>
+                        </div>
+                    </section>
+
+                    <section class="astrology-suite-style-preview-panel" aria-label="<?php echo esc_attr__('Result preview', 'astrology-suite-freeastroapi'); ?>">
+                        <h3><?php esc_html_e('Results', 'astrology-suite-freeastroapi'); ?></h3>
+                        <div class="openastro-output">
+                            <h2 class="openastro-report-title"><?php esc_html_e('Natal Report', 'astrology-suite-freeastroapi'); ?></h2>
+                            <section class="openastro-card openastro-chart-card">
+                                <h3><?php esc_html_e('Natal Wheel', 'astrology-suite-freeastroapi'); ?></h3>
+                                <button class="openastro-print-btn" type="button"><?php esc_html_e('Print', 'astrology-suite-freeastroapi'); ?></button>
+                                <div class="openastro-chart" aria-hidden="true">
+                                    <img class="astrology-suite-style-preview-chart-img" src="<?php echo esc_url(self::style_chart_preview_svg_url()); ?>" alt="<?php echo esc_attr__('Sample natal wheel using the selected chart theme', 'astrology-suite-freeastroapi'); ?>" loading="lazy" />
+                                </div>
+                            </section>
+                            <section class="openastro-card">
+                                <h3><?php esc_html_e('Planet highlights', 'astrology-suite-freeastroapi'); ?></h3>
+                                <div class="openastro-planet-item">
+                                    <h4><span class="openastro-astro-glyph">s</span><?php esc_html_e('Sun in Capricorn', 'astrology-suite-freeastroapi'); ?></h4>
+                                    <p><?php esc_html_e('A concise interpretation paragraph previews body text, labels, spacing, and card contrast.', 'astrology-suite-freeastroapi'); ?></p>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th><?php esc_html_e('Body', 'astrology-suite-freeastroapi'); ?></th>
+                                            <th><?php esc_html_e('Sign', 'astrology-suite-freeastroapi'); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><?php esc_html_e('Moon', 'astrology-suite-freeastroapi'); ?></td>
+                                            <td><?php esc_html_e('Libra', 'astrology-suite-freeastroapi'); ?></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </section>
+                            <section class="openastro-card openastro-simple-sign-card">
+                                <h3><?php esc_html_e('Moon Sign', 'astrology-suite-freeastroapi'); ?></h3>
+                                <p class="openastro-simple-sign-value"><span class="openastro-astro-glyph">X</span><?php esc_html_e('Libra', 'astrology-suite-freeastroapi'); ?></p>
+                                <div class="openastro-simple-sign-interpretation">
+                                    <h4><?php esc_html_e('Interpretation', 'astrology-suite-freeastroapi'); ?></h4>
+                                    <p><?php esc_html_e('This card previews simple-sign result spacing and typography.', 'astrology-suite-freeastroapi'); ?></p>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    private static function render_style_preview_city_result(string $name, string $country, string $timezone, string $coords, bool $active): void
+    {
+        ?>
+        <button class="openastro-result-btn<?php echo $active ? ' is-active' : ''; ?>" type="button">
+            <span class="openastro-result-main">
+                <span class="openastro-result-primary">
+                    <span class="openastro-result-name"><?php echo esc_html($name); ?></span>
+                    <span class="openastro-result-country"><?php echo esc_html($country); ?></span>
+                </span>
+            </span>
+            <span class="openastro-result-meta">
+                <span class="openastro-result-meta-item"><?php echo esc_html($timezone); ?></span>
+                <span class="openastro-result-meta-item"><?php echo esc_html($coords); ?></span>
+            </span>
+        </button>
+        <?php
+    }
+
+    private static function style_preview_inline_vars(): string
+    {
+        $background = (bool) self::get_option_value(self::OPTION_STYLE_TRANSPARENT_BG, false)
+            ? 'transparent'
+            : (string) self::get_option_value(self::OPTION_STYLE_BG_COLOR, '#ffffff');
+
+        $vars = [
+            '--openastro-bg' => $background,
+            '--openastro-text' => (string) self::get_option_value(self::OPTION_STYLE_TEXT_COLOR, '#111111'),
+            '--openastro-history-bg' => (string) self::get_option_value(self::OPTION_STYLE_HISTORY_BG_COLOR, '#f9fafb'),
+            '--openastro-history-border' => (string) self::get_option_value(self::OPTION_STYLE_HISTORY_BORDER_COLOR, '#e5e7eb'),
+            '--openastro-history-text' => (string) self::get_option_value(self::OPTION_STYLE_HISTORY_TEXT_COLOR, '#111111'),
+            '--openastro-input-radius' => (int) self::get_option_value(self::OPTION_STYLE_INPUT_BORDER_RADIUS, 6) . 'px',
+            '--openastro-input-border-color' => (string) self::get_option_value(self::OPTION_STYLE_INPUT_BORDER_COLOR, '#d1d5db'),
+            '--openastro-input-bg' => (string) self::get_option_value(self::OPTION_STYLE_INPUT_BG_COLOR, '#ffffff'),
+            '--openastro-input-text' => (string) self::get_option_value(self::OPTION_STYLE_INPUT_TEXT_COLOR, '#111111'),
+            '--openastro-input-placeholder' => (string) self::get_option_value(self::OPTION_STYLE_INPUT_PLACEHOLDER_COLOR, '#6b7280'),
+            '--openastro-button-radius' => (int) self::get_option_value(self::OPTION_STYLE_BUTTON_BORDER_RADIUS, 6) . 'px',
+            '--openastro-button-bg' => (string) self::get_option_value(self::OPTION_STYLE_BUTTON_BG_COLOR, '#111827'),
+            '--openastro-button-text' => (string) self::get_option_value(self::OPTION_STYLE_BUTTON_TEXT_COLOR, '#ffffff'),
+            '--openastro-button-border' => (string) self::get_option_value(self::OPTION_STYLE_BUTTON_BORDER_COLOR, '#111827'),
+            '--openastro-label-color' => (string) self::get_option_value(self::OPTION_STYLE_LABEL_COLOR, '#111111'),
+            '--openastro-label-weight' => (string) self::get_option_value(self::OPTION_STYLE_LABEL_WEIGHT, '600'),
+            '--openastro-focus-ring' => (string) self::get_option_value(self::OPTION_STYLE_FOCUS_RING_COLOR, '#2563eb'),
+            '--openastro-astro-font-size' => (int) self::get_option_value(self::OPTION_STYLE_ASTRO_FONT_SIZE, 20) . 'px',
+            '--openastro-astro-font-color' => (string) self::get_option_value(self::OPTION_STYLE_ASTRO_FONT_COLOR, '#111111'),
+            '--openastro-font-h2' => (int) self::get_option_value(self::OPTION_TYPO_H2, 28) . 'px',
+            '--openastro-font-h3' => (int) self::get_option_value(self::OPTION_TYPO_H3, 22) . 'px',
+            '--openastro-font-h4' => (int) self::get_option_value(self::OPTION_TYPO_H4, 18) . 'px',
+            '--openastro-font-body' => (int) self::get_option_value(self::OPTION_TYPO_BODY, 16) . 'px',
+            '--openastro-font-table' => (int) self::get_option_value(self::OPTION_TYPO_TABLE, 14) . 'px',
+            '--openastro-font-input' => (int) self::get_option_value(self::OPTION_TYPO_INPUT, 16) . 'px',
+            '--openastro-font-button' => (int) self::get_option_value(self::OPTION_TYPO_BUTTON, 16) . 'px',
+            '--openastro-font-meta' => (int) self::get_option_value(self::OPTION_TYPO_META, 13) . 'px',
+        ];
+
+        $style = [];
+        foreach ($vars as $key => $value) {
+            $style[] = $key . ': ' . $value;
+        }
+
+        return implode('; ', $style);
+    }
+
+    private static function render_style_preview_admin_styles(): void
+    {
+        static $printed = false;
+        if ($printed) {
+            return;
+        }
+        $printed = true;
+        ?>
+        <style>
+            .astrology-suite-style-preview-shell {
+                max-width: 1120px;
+            }
+            .astrology-suite-style-preview-shell > .description {
+                margin: 0 0 10px;
+            }
+            .astrology-suite-style-preview-widget {
+                max-width: 1120px;
+            }
+            .astrology-suite-style-preview-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 18px;
+                align-items: start;
+            }
+            .astrology-suite-style-preview-panel {
+                min-width: 0;
+            }
+            .astrology-suite-style-preview-panel > h3 {
+                margin: 0 0 12px;
+                font-size: 14px;
+                line-height: 1.35;
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
+                color: #50575e;
+            }
+            .astrology-suite-style-preview-widget .openastro-form {
+                max-width: none;
+                margin: 0;
+            }
+            .astrology-suite-style-preview-widget.astrology-suite-history-hidden .openastro-form-header {
+                display: none;
+            }
+            .astrology-suite-style-preview-widget .openastro-output {
+                gap: 14px;
+            }
+            .astrology-suite-style-preview-row {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+            .astrology-suite-style-preview-widget .openastro-chart svg,
+            .astrology-suite-style-preview-chart-img {
+                display: block;
+                width: 100%;
+                height: auto;
+                max-width: 280px;
+                margin: 0 auto;
+            }
+            .astrology-suite-style-preview-widget table {
+                margin-top: 10px;
+            }
+            @media (max-width: 680px) {
+                .astrology-suite-style-preview-row {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+        <script>
+            (function () {
+                function initAstrologySuiteStylePreview() {
+                    var preview = document.querySelector('.astrology-suite-style-preview-widget');
+                    if (!preview) {
+                        return;
+                    }
+
+                    var fields = {
+                        <?php echo wp_json_encode(self::OPTION_STYLE_TEXT_COLOR); ?>: ['--openastro-text', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_HISTORY_BG_COLOR); ?>: ['--openastro-history-bg', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_HISTORY_BORDER_COLOR); ?>: ['--openastro-history-border', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_HISTORY_TEXT_COLOR); ?>: ['--openastro-history-text', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_INPUT_BORDER_RADIUS); ?>: ['--openastro-input-radius', 'px'],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_INPUT_BORDER_COLOR); ?>: ['--openastro-input-border-color', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_INPUT_BG_COLOR); ?>: ['--openastro-input-bg', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_INPUT_TEXT_COLOR); ?>: ['--openastro-input-text', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_INPUT_PLACEHOLDER_COLOR); ?>: ['--openastro-input-placeholder', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_BUTTON_BORDER_RADIUS); ?>: ['--openastro-button-radius', 'px'],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_BUTTON_BG_COLOR); ?>: ['--openastro-button-bg', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_BUTTON_TEXT_COLOR); ?>: ['--openastro-button-text', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_BUTTON_BORDER_COLOR); ?>: ['--openastro-button-border', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_LABEL_COLOR); ?>: ['--openastro-label-color', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_LABEL_WEIGHT); ?>: ['--openastro-label-weight', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_FOCUS_RING_COLOR); ?>: ['--openastro-focus-ring', ''],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_ASTRO_FONT_SIZE); ?>: ['--openastro-astro-font-size', 'px'],
+                        <?php echo wp_json_encode(self::OPTION_STYLE_ASTRO_FONT_COLOR); ?>: ['--openastro-astro-font-color', '']
+                    };
+
+                    function setPreviewVariable(name, value) {
+                        preview.style.setProperty(name, value);
+                        if (name.indexOf('--openastro-') === 0) {
+                            preview.style.setProperty(name.replace('--openastro-', '--astrology-suite-'), value);
+                        }
+                    }
+
+                    function updateField(name) {
+                        var field = document.querySelector('[name="' + name + '"]');
+                        var target = fields[name];
+                        if (!field || !target) {
+                            return;
+                        }
+                        var value = field.value;
+                        if (value === '') {
+                            return;
+                        }
+                        setPreviewVariable(target[0], value + target[1]);
+                    }
+
+                    Object.keys(fields).forEach(function (name) {
+                        var field = document.querySelector('[name="' + name + '"]');
+                        if (!field) {
+                            return;
+                        }
+                        field.addEventListener('input', function () { updateField(name); });
+                        field.addEventListener('change', function () { updateField(name); });
+                    });
+
+                    var backgroundColor = document.querySelector('[name="<?php echo esc_js(self::OPTION_STYLE_BG_COLOR); ?>"]');
+                    var transparentBackground = document.querySelector('[name="<?php echo esc_js(self::OPTION_STYLE_TRANSPARENT_BG); ?>"][type="checkbox"]');
+                    function syncBackground() {
+                        var value = backgroundColor && backgroundColor.value ? backgroundColor.value : '#ffffff';
+                        setPreviewVariable('--openastro-bg', transparentBackground && transparentBackground.checked ? 'transparent' : value);
+                    }
+                    if (backgroundColor) {
+                        backgroundColor.addEventListener('input', syncBackground);
+                        backgroundColor.addEventListener('change', syncBackground);
+                    }
+                    if (transparentBackground) {
+                        transparentBackground.addEventListener('change', syncBackground);
+                    }
+                    syncBackground();
+
+                    var border = document.querySelector('[name="<?php echo esc_js(self::OPTION_STYLE_SHOW_BORDER); ?>"][type="checkbox"]');
+                    if (border) {
+                        border.addEventListener('change', function () {
+                            preview.classList.toggle('astrology-suite-no-border', !border.checked);
+                            preview.classList.toggle('openastro-no-border', !border.checked);
+                        });
+                    }
+
+                    var history = document.querySelector('[name="<?php echo esc_js(self::OPTION_STYLE_SHOW_HISTORY); ?>"][type="checkbox"]');
+                    if (history) {
+                        history.addEventListener('change', function () {
+                            preview.classList.toggle('astrology-suite-history-hidden', !history.checked);
+                        });
+                    }
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initAstrologySuiteStylePreview);
+                } else {
+                    initAstrologySuiteStylePreview();
+                }
+            })();
+        </script>
+        <?php
+    }
+
     public static function render_style_bg_color_field(): void
     {
         $value = (string) self::get_option_value(self::OPTION_STYLE_BG_COLOR, '#ffffff');
         echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_BG_COLOR) . '" value="' . esc_attr($value) . '" />';
+        echo '<p class="description">' . esc_html__('Used when the plugin background is enabled.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_style_transparent_bg_field(): void
+    {
+        self::render_checkbox_field(self::OPTION_STYLE_TRANSPARENT_BG, __('Use a transparent plugin background.', 'astrology-suite-freeastroapi'), false);
+        echo '<p class="description">' . esc_html__('Keeps the saved background color available for when this option is turned off.', 'astrology-suite-freeastroapi') . '</p>';
     }
 
     public static function render_style_text_color_field(): void
     {
         $value = (string) self::get_option_value(self::OPTION_STYLE_TEXT_COLOR, '#111111');
         echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_TEXT_COLOR) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_style_group_history(): void
+    {
+        echo '<p><strong>' . esc_html__('Past inputs dropdown', 'astrology-suite-freeastroapi') . '</strong></p>';
+        echo '<p class="description">' . esc_html__('Controls the saved local-browser input selector shown above each widget form.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_style_show_history_field(): void
+    {
+        self::render_checkbox_field(self::OPTION_STYLE_SHOW_HISTORY, __('Show the Past inputs dropdown above widget forms.', 'astrology-suite-freeastroapi'));
+        echo '<p class="description">' . esc_html__('When hidden, new widget submissions are not added to the Past inputs list.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_style_history_bg_color_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_STYLE_HISTORY_BG_COLOR, '#f9fafb');
+        echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_HISTORY_BG_COLOR) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_style_history_border_color_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_STYLE_HISTORY_BORDER_COLOR, '#e5e7eb');
+        echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_HISTORY_BORDER_COLOR) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_style_history_text_color_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_STYLE_HISTORY_TEXT_COLOR, '#111111');
+        echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_HISTORY_TEXT_COLOR) . '" value="' . esc_attr($value) . '" />';
     }
 
     public static function render_style_group_input(): void
@@ -1949,6 +2569,200 @@ JSON
         echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_ASTRO_FONT_COLOR) . '" value="' . esc_attr($value) . '" />';
     }
 
+    private static function ephemeris_style_defaults(): array
+    {
+        return [
+            self::OPTION_EPHEMERIS_TABLE_BG_COLOR => '#ffffff',
+            self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR => '#111111',
+            self::OPTION_EPHEMERIS_TABLE_BORDER_COLOR => '#e5e7eb',
+            self::OPTION_EPHEMERIS_TABLE_HEADER_BG_COLOR => '#f8fafc',
+            self::OPTION_EPHEMERIS_TABLE_HEADER_TEXT_COLOR => '#111111',
+            self::OPTION_EPHEMERIS_TABLE_BADGE_BG_COLOR => '#f8fafc',
+            self::OPTION_EPHEMERIS_TABLE_BADGE_TEXT_COLOR => '#475569',
+            self::OPTION_EPHEMERIS_TABLE_TODAY_BG_COLOR => '#f8fafc',
+            self::OPTION_EPHEMERIS_TABLE_TODAY_ACCENT_COLOR => '#2563eb',
+            self::OPTION_EPHEMERIS_RETROGRADE_COLOR => '#b91c1c',
+            self::OPTION_EPHEMERIS_INGRESS_COLOR => '#1d4ed8',
+            self::OPTION_EPHEMERIS_STATION_COLOR => '#a16207',
+        ];
+    }
+
+    private static function ephemeris_style_variable_map(): array
+    {
+        return [
+            self::OPTION_EPHEMERIS_TABLE_BG_COLOR => '--openastro-ephemeris-table-bg',
+            self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR => '--openastro-ephemeris-table-text',
+            self::OPTION_EPHEMERIS_TABLE_BORDER_COLOR => '--openastro-ephemeris-table-border',
+            self::OPTION_EPHEMERIS_TABLE_HEADER_BG_COLOR => '--openastro-ephemeris-header-bg',
+            self::OPTION_EPHEMERIS_TABLE_HEADER_TEXT_COLOR => '--openastro-ephemeris-header-text',
+            self::OPTION_EPHEMERIS_TABLE_BADGE_BG_COLOR => '--openastro-ephemeris-badge-bg',
+            self::OPTION_EPHEMERIS_TABLE_BADGE_TEXT_COLOR => '--openastro-ephemeris-badge-text',
+            self::OPTION_EPHEMERIS_TABLE_TODAY_BG_COLOR => '--openastro-ephemeris-today-bg',
+            self::OPTION_EPHEMERIS_TABLE_TODAY_ACCENT_COLOR => '--openastro-ephemeris-today-accent',
+            self::OPTION_EPHEMERIS_RETROGRADE_COLOR => '--openastro-ephemeris-retrograde',
+            self::OPTION_EPHEMERIS_INGRESS_COLOR => '--openastro-ephemeris-ingress',
+            self::OPTION_EPHEMERIS_STATION_COLOR => '--openastro-ephemeris-station',
+        ];
+    }
+
+    private static function ephemeris_style_inline_vars(): string
+    {
+        $defaults = self::ephemeris_style_defaults();
+        $vars = [];
+        foreach (self::ephemeris_style_variable_map() as $option => $var_name) {
+            $value = (string) self::get_option_value($option, $defaults[$option]);
+            $vars[$var_name] = $value;
+            $vars[str_replace('--openastro-', '--astrology-suite-', $var_name)] = $value;
+        }
+
+        $style = [];
+        foreach ($vars as $key => $value) {
+            $style[] = $key . ': ' . $value;
+        }
+
+        return implode('; ', $style);
+    }
+
+    private static function render_color_field(string $option, string $default): void
+    {
+        $value = (string) self::get_option_value($option, $default);
+        echo '<input type="color" name="' . esc_attr($option) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_ephemeris_style_preview_field(): void
+    {
+        self::render_ephemeris_style_preview_admin_assets();
+        ?>
+        <div class="wp-block-astrology-suite-widget astrology-suite-ephemeris-style-preview" style="<?php echo esc_attr(self::ephemeris_style_inline_vars()); ?>">
+            <section class="openastro-ephemeris-table-card">
+                <div class="openastro-ephemeris-table-top">
+                    <span class="openastro-ephemeris-table-meta"><?php esc_html_e('GMT 00:00', 'astrology-suite-freeastroapi'); ?></span>
+                    <h3><?php esc_html_e('June 2026', 'astrology-suite-freeastroapi'); ?></h3>
+                    <span class="openastro-ephemeris-row-badge"><?php esc_html_e('30 rows', 'astrology-suite-freeastroapi'); ?></span>
+                </div>
+                <div class="openastro-ephemeris-table-viewport">
+                    <table class="openastro-ephemeris-table">
+                        <thead>
+                            <tr>
+                                <th class="openastro-ephemeris-col-date"><?php esc_html_e('Date', 'astrology-suite-freeastroapi'); ?></th>
+                                <th><?php esc_html_e('Day', 'astrology-suite-freeastroapi'); ?></th>
+                                <th><?php esc_html_e('GST', 'astrology-suite-freeastroapi'); ?></th>
+                                <th><span class="openastro-ephemeris-head-body"><span class="openastro-ephemeris-glyph">☉</span><span class="openastro-ephemeris-head-label">SUN</span></span></th>
+                                <th><span class="openastro-ephemeris-head-body"><span class="openastro-ephemeris-glyph">☽</span><span class="openastro-ephemeris-head-label">MOON</span></span></th>
+                                <th><span class="openastro-ephemeris-head-body"><span class="openastro-ephemeris-glyph">☿</span><span class="openastro-ephemeris-head-label">MERCURY</span></span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="openastro-ephemeris-date-cell">1</td>
+                                <td class="openastro-ephemeris-day-cell">Mon</td>
+                                <td class="openastro-ephemeris-gst-cell">16:37:59</td>
+                                <td>10°32' Gem</td>
+                                <td>17°29' Sag</td>
+                                <td class="openastro-ephemeris-cell is-ingress">29°09' Gem</td>
+                            </tr>
+                            <tr class="openastro-ephemeris-row is-today">
+                                <td class="openastro-ephemeris-date-cell">2</td>
+                                <td class="openastro-ephemeris-day-cell">Tue</td>
+                                <td class="openastro-ephemeris-gst-cell">16:41:55</td>
+                                <td>11°30' Gem</td>
+                                <td>29°21' Sag</td>
+                                <td>00°51' Can</td>
+                            </tr>
+                            <tr>
+                                <td class="openastro-ephemeris-date-cell">3</td>
+                                <td class="openastro-ephemeris-day-cell">Wed</td>
+                                <td class="openastro-ephemeris-gst-cell">16:45:52</td>
+                                <td>12°27' Gem</td>
+                                <td>11°13' Cap</td>
+                                <td class="openastro-ephemeris-cell is-retrograde">02°30' Can Rx</td>
+                            </tr>
+                            <tr>
+                                <td class="openastro-ephemeris-date-cell">4</td>
+                                <td class="openastro-ephemeris-day-cell">Thu</td>
+                                <td class="openastro-ephemeris-gst-cell">16:49:49</td>
+                                <td>13°25' Gem</td>
+                                <td>23°08' Cap</td>
+                                <td class="openastro-ephemeris-cell is-station">04°06' Can S</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <p class="description"><?php esc_html_e('Preview starts with the saved ephemeris table colors and updates as you edit the controls below. Save changes to apply them on the frontend.', 'astrology-suite-freeastroapi'); ?></p>
+        <?php
+    }
+
+    private static function render_ephemeris_style_preview_admin_assets(): void
+    {
+        static $printed = false;
+        if ($printed) {
+            return;
+        }
+        $printed = true;
+        ?>
+        <style>
+            .astrology-suite-ephemeris-style-preview {
+                max-width: 1120px;
+                padding: 16px;
+                overflow: hidden;
+            }
+            .astrology-suite-ephemeris-style-preview .openastro-ephemeris-table {
+                min-width: 680px;
+            }
+        </style>
+        <script>
+            (function () {
+                function initAstrologySuiteEphemerisStylePreview() {
+                    var preview = document.querySelector('.astrology-suite-ephemeris-style-preview');
+                    if (!preview) {
+                        return;
+                    }
+                    var fields = <?php echo wp_json_encode(self::ephemeris_style_variable_map()); ?>;
+                    function setPreviewVariable(name, value) {
+                        preview.style.setProperty(name, value);
+                        if (name.indexOf('--openastro-') === 0) {
+                            preview.style.setProperty(name.replace('--openastro-', '--astrology-suite-'), value);
+                        }
+                    }
+                    Object.keys(fields).forEach(function (name) {
+                        var field = document.querySelector('[name="' + name + '"]');
+                        if (!field) {
+                            return;
+                        }
+                        var update = function () {
+                            if (field.value) {
+                                setPreviewVariable(fields[name], field.value);
+                            }
+                        };
+                        field.addEventListener('input', update);
+                        field.addEventListener('change', update);
+                    });
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initAstrologySuiteEphemerisStylePreview);
+                } else {
+                    initAstrologySuiteEphemerisStylePreview();
+                }
+            })();
+        </script>
+        <?php
+    }
+
+    public static function render_ephemeris_table_bg_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_BG_COLOR, '#ffffff'); }
+    public static function render_ephemeris_table_text_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR, '#111111'); }
+    public static function render_ephemeris_table_border_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_BORDER_COLOR, '#e5e7eb'); }
+    public static function render_ephemeris_table_header_bg_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_HEADER_BG_COLOR, '#f8fafc'); }
+    public static function render_ephemeris_table_header_text_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_HEADER_TEXT_COLOR, '#111111'); }
+    public static function render_ephemeris_table_badge_bg_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_BADGE_BG_COLOR, '#f8fafc'); }
+    public static function render_ephemeris_table_badge_text_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_BADGE_TEXT_COLOR, '#475569'); }
+    public static function render_ephemeris_table_today_bg_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_TODAY_BG_COLOR, '#f8fafc'); }
+    public static function render_ephemeris_table_today_accent_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_TABLE_TODAY_ACCENT_COLOR, '#2563eb'); }
+    public static function render_ephemeris_retrograde_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_RETROGRADE_COLOR, '#b91c1c'); }
+    public static function render_ephemeris_ingress_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_INGRESS_COLOR, '#1d4ed8'); }
+    public static function render_ephemeris_station_color_field(): void { self::render_color_field(self::OPTION_EPHEMERIS_STATION_COLOR, '#a16207'); }
+
     private static function render_font_size_field(string $option, int $default): void
     {
         $value = (int) self::get_option_value($option, $default);
@@ -1972,6 +2786,7 @@ JSON
             'chart' => __('Custom Chart', 'astrology-suite-freeastroapi'),
             'objects' => __('Objects', 'astrology-suite-freeastroapi'),
             'style' => __('Style', 'astrology-suite-freeastroapi'),
+            'ephemeris' => __('Ephemeris Style', 'astrology-suite-freeastroapi'),
             'typography' => __('Typography', 'astrology-suite-freeastroapi'),
             'help' => __('Help', 'astrology-suite-freeastroapi'),
         ];
@@ -1983,6 +2798,21 @@ JSON
         $tab = is_string($tab_param) ? sanitize_key(wp_unslash($tab_param)) : 'api';
         $tabs = self::settings_tabs();
         return isset($tabs[$tab]) ? $tab : 'api';
+    }
+
+    private static function settings_group_for_tab(string $tab): string
+    {
+        $groups = [
+            'api' => 'astrology_suite_api_settings_group',
+            'report' => 'astrology_suite_report_settings_group',
+            'chart' => 'astrology_suite_chart_settings_group',
+            'objects' => 'astrology_suite_objects_settings_group',
+            'style' => 'astrology_suite_style_settings_group',
+            'ephemeris' => 'astrology_suite_ephemeris_settings_group',
+            'typography' => 'astrology_suite_typography_settings_group',
+        ];
+
+        return $groups[$tab] ?? $groups['api'];
     }
 
     private static function render_section_fields(string $section_id): void
@@ -2020,74 +2850,12 @@ JSON
             self::render_section_fields('openastro_style_settings');
             return;
         }
+        if ($tab === 'ephemeris') {
+            self::render_section_fields('openastro_ephemeris_style_settings');
+            return;
+        }
         if ($tab === 'typography') {
             self::render_section_fields('openastro_typography_settings');
-        }
-    }
-
-    private static function all_option_keys(): array
-    {
-        return [
-            self::OPTION_API_KEY,
-            self::OPTION_REPORT_DETAIL,
-            self::OPTION_REPORT_MAX_PLANETS,
-            self::OPTION_REPORT_MAX_ASPECTS,
-            self::OPTION_REPORT_SHOW_TABLES,
-            self::OPTION_REPORT_SHOW_ANGLES,
-            self::OPTION_CHART_SHOW_PRINT_BUTTON,
-            self::OPTION_CHART_THEME,
-            self::OPTION_CHART_CUSTOM_CONFIG,
-            self::OPTION_CHART_BODY_CURRENT,
-            self::OPTION_CHART_BODY_CLASSIC_MONO,
-            self::OPTION_CHART_BODY_TRANSPARENT_FRENCH,
-            self::OPTION_CHART_BODY_MIDNIGHT,
-            self::OPTION_CHART_BODY_PARCHMENT,
-            self::OPTION_CHART_BODY_CUSTOM,
-            self::OPTION_OBJ_ASC,
-            self::OPTION_OBJ_MC,
-            self::OPTION_OBJ_CHIRON,
-            self::OPTION_OBJ_LILITH,
-            self::OPTION_OBJ_TRUE_NODE,
-            self::OPTION_OBJ_MEAN_NODE,
-            self::OPTION_OBJ_PART_OF_FORTUNE,
-            self::OPTION_STYLE_SHOW_BORDER,
-            self::OPTION_STYLE_BG_COLOR,
-            self::OPTION_STYLE_TEXT_COLOR,
-            self::OPTION_STYLE_INPUT_BORDER_RADIUS,
-            self::OPTION_STYLE_INPUT_BORDER_COLOR,
-            self::OPTION_STYLE_INPUT_BG_COLOR,
-            self::OPTION_STYLE_INPUT_TEXT_COLOR,
-            self::OPTION_STYLE_INPUT_PLACEHOLDER_COLOR,
-            self::OPTION_STYLE_BUTTON_BORDER_RADIUS,
-            self::OPTION_STYLE_BUTTON_BG_COLOR,
-            self::OPTION_STYLE_BUTTON_TEXT_COLOR,
-            self::OPTION_STYLE_BUTTON_BORDER_COLOR,
-            self::OPTION_STYLE_LABEL_COLOR,
-            self::OPTION_STYLE_LABEL_WEIGHT,
-            self::OPTION_STYLE_FOCUS_RING_COLOR,
-            self::OPTION_STYLE_ASTRO_FONT_SIZE,
-            self::OPTION_STYLE_ASTRO_FONT_COLOR,
-            self::OPTION_TYPO_H2,
-            self::OPTION_TYPO_H3,
-            self::OPTION_TYPO_H4,
-            self::OPTION_TYPO_BODY,
-            self::OPTION_TYPO_TABLE,
-            self::OPTION_TYPO_INPUT,
-            self::OPTION_TYPO_BUTTON,
-            self::OPTION_TYPO_META,
-        ];
-    }
-
-    private static function render_preserve_hidden_fields(): void
-    {
-        foreach (self::all_option_keys() as $key) {
-            $value = self::get_option_value($key, '');
-            if (is_bool($value)) {
-                $value = $value ? '1' : '0';
-            } else {
-                $value = (string) $value;
-            }
-            echo '<input type="hidden" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" />';
         }
     }
 
@@ -2119,8 +2887,7 @@ JSON
             <?php if ($active_tab !== 'help') : ?>
                 <form method="post" action="options.php">
                     <?php
-                    settings_fields('openastro_settings_group');
-                    self::render_preserve_hidden_fields();
+                    settings_fields(self::settings_group_for_tab($active_tab));
                     self::render_tabbed_settings_fields($active_tab);
                     submit_button();
                     ?>
@@ -2132,7 +2899,7 @@ JSON
                     <li><?php esc_html_e('Search for "Astrology Suite" in the block inserter.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Choose a block, configure any sidebar options, and publish the page.', 'astrology-suite-freeastroapi'); ?></li>
                 </ol>
-                <p><?php esc_html_e('Each public block renders its own front-end form with optional name, birth date, birth time, city autocomplete, a local "Past inputs..." selector, and a Generate button.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Natal and simple-sign blocks render birth-data forms with city autocomplete, a local "Past inputs..." selector, and a Generate button. The ephemeris block renders month controls, body filters, optional city autocomplete for local points, and a monthly table.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <h3><?php esc_html_e('Available Blocks', 'astrology-suite-freeastroapi'); ?></h3>
                 <table class="widefat striped" style="max-width: 920px;">
@@ -2171,27 +2938,32 @@ JSON
                             <td><code>astrology-suite/simple-sign-midheaven</code></td>
                             <td><?php esc_html_e('Input form plus Midheaven sign result.', 'astrology-suite-freeastroapi'); ?></td>
                         </tr>
+                        <tr>
+                            <td><code>astrology-suite/ephemeris</code></td>
+                            <td><?php esc_html_e('Monthly ephemeris table with selectable bodies, tropical/sidereal mode, optional city, and CSV download.', 'astrology-suite-freeastroapi'); ?></td>
+                        </tr>
                     </tbody>
                 </table>
                 <p><?php esc_html_e('Simple-sign blocks include sidebar controls for interpretation text and interpretation style. The supported style values are "improved" and "poetic".', 'astrology-suite-freeastroapi'); ?></p>
 
                 <h3><?php esc_html_e('Code Block Example (Page Code Editor)', 'astrology-suite-freeastroapi'); ?></h3>
-                <pre><code><?php echo esc_html("<!-- wp:astrology-suite/chart-only /-->\n<!-- wp:astrology-suite/report-only /-->\n<!-- wp:astrology-suite/chart-report /-->\n<!-- wp:astrology-suite/simple-sign-sun {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-moon {\"includeInterpretation\":false,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-rising {\"includeInterpretation\":true,\"interpretationStyle\":\"poetic\"} /-->\n<!-- wp:astrology-suite/simple-sign-midheaven {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->"); ?></code></pre>
+                <pre><code><?php echo esc_html("<!-- wp:astrology-suite/chart-only /-->\n<!-- wp:astrology-suite/report-only /-->\n<!-- wp:astrology-suite/chart-report /-->\n<!-- wp:astrology-suite/simple-sign-sun {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-moon {\"includeInterpretation\":false,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-rising {\"includeInterpretation\":true,\"interpretationStyle\":\"poetic\"} /-->\n<!-- wp:astrology-suite/simple-sign-midheaven {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/ephemeris /-->"); ?></code></pre>
 
                 <h3><?php esc_html_e('Shortcode Examples', 'astrology-suite-freeastroapi'); ?></h3>
                 <p><?php esc_html_e('Use shortcodes in classic editor content, shortcode blocks, widgets, or template areas that run WordPress shortcodes.', 'astrology-suite-freeastroapi'); ?></p>
-                <pre><code><?php echo esc_html("[astrology_suite mode=\"chart-report\"]\n[astrology_suite_chart_only]\n[astrology_suite_report_only]\n[astrology_suite_chart_report]\n[astrology_suite_simple_sign_sun include_interpretation=\"true\" interpretation_style=\"improved\"]\n[astrology_suite_simple_sign_moon include_interpretation=\"false\"]\n[astrology_suite_simple_sign_rising include_interpretation=\"true\" interpretation_style=\"poetic\"]\n[astrology_suite_simple_sign_midheaven]"); ?></code></pre>
-                <p><?php esc_html_e('Supported shortcode modes are chart-only, report-only, chart-report, simple-sign-sun, simple-sign-moon, simple-sign-rising, and simple-sign-midheaven.', 'astrology-suite-freeastroapi'); ?></p>
+                <pre><code><?php echo esc_html("[astrology_suite mode=\"chart-report\"]\n[astrology_suite_chart_only]\n[astrology_suite_report_only]\n[astrology_suite_chart_report]\n[astrology_suite_simple_sign_sun include_interpretation=\"true\" interpretation_style=\"improved\"]\n[astrology_suite_simple_sign_moon include_interpretation=\"false\"]\n[astrology_suite_simple_sign_rising include_interpretation=\"true\" interpretation_style=\"poetic\"]\n[astrology_suite_simple_sign_midheaven]\n[astrology_suite_ephemeris]"); ?></code></pre>
+                <p><?php esc_html_e('Supported shortcode modes are chart-only, report-only, chart-report, simple-sign-sun, simple-sign-moon, simple-sign-rising, simple-sign-midheaven, and ephemeris.', 'astrology-suite-freeastroapi'); ?></p>
                 <p><?php esc_html_e('Shortcode attributes: mode, include_interpretation, interpretation_style, and class. Legacy openastro, openastro_*, freeastro, and freeastro_* shortcode aliases are also registered.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <hr />
                 <h2><?php esc_html_e('Settings Tabs', 'astrology-suite-freeastroapi'); ?></h2>
                 <ul>
-                    <li><?php esc_html_e('API stores the FreeAstroAPI key used for protected server-to-server calculation requests.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('API stores the FreeAstroAPI key used for server-to-server requests and controls whether public visitors can use calculation forms.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Report controls interpretation length, report limits, angle sections, chart print button, and tables.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Custom Chart controls SVG/PNG chart theme bodies, FreeAstroAPI-generated preview cards, and optional advanced chart_config JSON.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Objects controls which extra points are requested and rendered in chart/report modes.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><?php esc_html_e('Style controls container, input, button, label, focus, and glyph colors/radii.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Style controls container border/background transparency, Past inputs visibility/colors, input, button, label, focus, and glyph colors/radii.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Ephemeris Style controls the monthly table preview, grid, header, badge, today row, retrograde, ingress, and station colors.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Typography controls heading, body, table, input, button, and helper text sizes.', 'astrology-suite-freeastroapi'); ?></li>
                 </ul>
                 <p>
@@ -2201,6 +2973,18 @@ JSON
                             /* translators: %s: FreeAstroAPI chart designer URL. */
                             __('Custom chart JSON can be generated in the <a href="%s" target="_blank" rel="noopener">FreeAstroAPI Chart Designer</a>. Paste chart_config only into the custom-config field, or paste a partial SVG/PNG chart request body into an individual theme body.', 'astrology-suite-freeastroapi'),
                             esc_url(self::UPSTREAM_CHART_DESIGNER_URL)
+                        ),
+                        ['a' => ['href' => [], 'target' => [], 'rel' => []]]
+                    );
+                    ?>
+                </p>
+                <p>
+                    <?php
+                    echo wp_kses(
+                        sprintf(
+                            /* translators: %s: FreeAstroAPI ephemeris docs URL. */
+                            __('The ephemeris block uses the <a href="%s" target="_blank" rel="noopener">FreeAstroAPI Western Ephemeris endpoint</a> with table grid output for monthly planetary tables.', 'astrology-suite-freeastroapi'),
+                            esc_url(self::UPSTREAM_EPHEMERIS_DOCS_URL)
                         ),
                         ['a' => ['href' => [], 'target' => [], 'rel' => []]]
                     );
@@ -2279,7 +3063,20 @@ Chart/Print Elements:
 .astrology-suite-chart-card
 .astrology-suite-chart
 .astrology-suite-print-btn
-.astrology-suite-astro-glyph"
+.astrology-suite-astro-glyph
+
+Ephemeris Elements:
+.astrology-suite-ephemeris
+.astrology-suite-ephemeris-toolbar
+.astrology-suite-ephemeris-filter
+.astrology-suite-ephemeris-chip
+.astrology-suite-ephemeris-table-card
+.astrology-suite-ephemeris-table-meta
+.astrology-suite-ephemeris-row-badge
+.astrology-suite-ephemeris-table
+.astrology-suite-ephemeris-row
+.astrology-suite-ephemeris-cell
+.astrology-suite-ephemeris-glyph"
                 ); ?></code></pre>
                 <p><?php esc_html_e('Legacy .openastro-* classes and --openastro-* variables remain supported for existing custom CSS.', 'astrology-suite-freeastroapi'); ?></p>
                 <p><a href="<?php echo esc_url($css_doc_url); ?>" target="_blank" rel="noopener"><?php esc_html_e('Open full CSS class docs (Markdown)', 'astrology-suite-freeastroapi'); ?></a></p>
@@ -2288,22 +3085,23 @@ Chart/Print Elements:
                 <h2><?php esc_html_e('REST Endpoints Used By The Blocks', 'astrology-suite-freeastroapi'); ?></h2>
                 <ul>
                     <li><code>GET /wp-json/astrology-suite/v1/geo/search</code> - <?php esc_html_e('public city autocomplete proxy.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><code>POST /wp-json/astrology-suite/v1/natal/calculate</code> - <?php esc_html_e('protected natal data and report calculation.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><code>POST /wp-json/astrology-suite/v1/natal/chart-svg</code> - <?php esc_html_e('protected natal wheel SVG generation using the selected Custom Chart request body.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><code>POST /wp-json/astrology-suite/v1/western/simple-signs</code> - <?php esc_html_e('protected simple sign calculation.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><code>POST /wp-json/astrology-suite/v1/natal/calculate</code> - <?php esc_html_e('natal data and report calculation. Used by report-only and chart-report modes.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><code>POST /wp-json/astrology-suite/v1/natal/chart-svg</code> - <?php esc_html_e('natal wheel SVG generation using the selected Custom Chart request body. Used by chart-only and chart-report modes.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><code>POST /wp-json/astrology-suite/v1/western/simple-signs</code> - <?php esc_html_e('simple sign calculation for Sun, Moon, Rising, or Midheaven modes.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><code>POST /wp-json/astrology-suite/v1/western/ephemeris</code> - <?php esc_html_e('monthly ephemeris grid calculation. Used by the ephemeris mode.', 'astrology-suite-freeastroapi'); ?></li>
                 </ul>
-                <p><?php esc_html_e('The matching /wp-json/openastro/v1/* routes remain available as legacy aliases.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Calculation routes are available to public visitors when public calculations are enabled in the API tab. If disabled, they require a logged-in user who can edit posts. The matching /wp-json/openastro/v1/* routes remain available as legacy aliases.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <hr />
                 <h2><?php esc_html_e('External Service Disclosure', 'astrology-suite-freeastroapi'); ?></h2>
                 <p><?php esc_html_e('Astrology Suite connects to FreeAstroAPI to search cities and generate astrology calculations.', 'astrology-suite-freeastroapi'); ?></p>
                 <ul>
                     <li><?php esc_html_e('City autocomplete sends the typed city query and optional country filter to FreeAstroAPI over HTTPS when a visitor types at least two characters into the city field.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><?php esc_html_e('Natal chart, report, chart SVG, and simple-sign requests send submitted birth data and calculation options to FreeAstroAPI over HTTPS when a logged-in user who can edit posts submits the form.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><?php esc_html_e('These protected calculation requests include the site’s configured FreeAstroAPI key in a server-to-server request header.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Natal chart, report, chart SVG, simple-sign, and ephemeris requests send submitted astrology data and calculation options to FreeAstroAPI over HTTPS when a visitor submits the form while public calculations are enabled, or when an editor submits while public calculations are disabled.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('These calculation requests include the site’s configured FreeAstroAPI key in a server-to-server request header. The API key is not sent to the browser.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('The plugin does not store visitor birth data in WordPress by default. The optional “Past inputs” list is stored only in the visitor’s local browser storage.', 'astrology-suite-freeastroapi'); ?></li>
                 </ul>
-                <p><?php esc_html_e('For security, natal chart, report, chart SVG, and simple-sign calculations are limited to logged-in users who can edit posts on this site. Visitors without this permission see an access note instead of the calculation form.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Public calculations can be turned off in the API tab. When disabled, visitors without editor permissions see an access note instead of the calculation form.', 'astrology-suite-freeastroapi'); ?></p>
                 <p>
                     <a href="<?php echo esc_url(self::UPSTREAM_SERVICE_URL); ?>" target="_blank" rel="noopener"><?php esc_html_e('FreeAstroAPI website', 'astrology-suite-freeastroapi'); ?></a>
                     |
@@ -2491,23 +3289,21 @@ Chart/Print Elements:
                 'callback' => [__CLASS__, 'simple_signs_calculate'],
                 'permission_callback' => [__CLASS__, 'calculation_permission'],
             ]);
+
+            register_rest_route($namespace, '/western/ephemeris', [
+                'methods' => \WP_REST_Server::CREATABLE,
+                'callback' => [__CLASS__, 'ephemeris_calculate'],
+                'permission_callback' => [__CLASS__, 'calculation_permission'],
+            ]);
         }
     }
 
     public static function calculation_permission()
     {
-        if (!is_user_logged_in()) {
+        if (!self::current_request_can_calculate()) {
             return new \WP_Error(
                 'rest_forbidden',
-                __('Astrology Suite calculation requests require a logged-in user.', 'astrology-suite-freeastroapi'),
-                ['status' => rest_authorization_required_code()]
-            );
-        }
-
-        if (!self::current_user_can_calculate()) {
-            return new \WP_Error(
-                'rest_forbidden',
-                __('Astrology Suite calculation requests require a user who can edit posts.', 'astrology-suite-freeastroapi'),
+                __('Astrology Suite public calculations are disabled. Log in with permission to edit posts, or enable public calculations in the API settings.', 'astrology-suite-freeastroapi'),
                 ['status' => rest_authorization_required_code()]
             );
         }
@@ -2627,6 +3423,153 @@ Chart/Print Elements:
         }
 
         return self::normalize_simple_signs_response($result, $point);
+    }
+
+    public static function ephemeris_calculate(\WP_REST_Request $request)
+    {
+        if (!self::ratelimit('ephemeris_calculate')) {
+            return new \WP_Error('rate_limited', 'Too many requests.', ['status' => 429]);
+        }
+
+        $payload = self::sanitize_ephemeris_payload($request->get_json_params());
+        if (is_wp_error($payload)) {
+            return $payload;
+        }
+
+        return self::request('POST', '/ephemeris/calculate', $payload);
+    }
+
+    private static function ephemeris_body_map(): array
+    {
+        return [
+            'sun' => 'Sun',
+            'moon' => 'Moon',
+            'mercury' => 'Mercury',
+            'venus' => 'Venus',
+            'mars' => 'Mars',
+            'jupiter' => 'Jupiter',
+            'saturn' => 'Saturn',
+            'uranus' => 'Uranus',
+            'neptune' => 'Neptune',
+            'pluto' => 'Pluto',
+            'mean-node' => 'Mean Node',
+            'mean_node' => 'Mean Node',
+            'true-node' => 'True Node',
+            'true_node' => 'True Node',
+            'north-node' => 'True Node',
+            'north_node' => 'True Node',
+            'lilith' => 'Lilith',
+            'true-lilith' => 'True Lilith',
+            'true_lilith' => 'True Lilith',
+            'chiron' => 'Chiron',
+            'pholus' => 'Pholus',
+            'ceres' => 'Ceres',
+            'pallas' => 'Pallas',
+            'juno' => 'Juno',
+            'vesta' => 'Vesta',
+            'ascendant' => 'Ascendant',
+            'asc' => 'Ascendant',
+            'mc' => 'MC',
+            'midheaven' => 'MC',
+            'vertex' => 'Vertex',
+            'vx' => 'Vertex',
+            'part-of-fortune' => 'Part of Fortune',
+            'part_of_fortune' => 'Part of Fortune',
+            'pof' => 'Part of Fortune',
+        ];
+    }
+
+    private static function sanitize_ephemeris_payload($payload)
+    {
+        if (!is_array($payload)) {
+            return new \WP_Error('invalid_payload', 'Payload must be an object.', ['status' => 400]);
+        }
+
+        $year = isset($payload['year']) ? (int) $payload['year'] : 0;
+        $month = isset($payload['month']) ? (int) $payload['month'] : 0;
+        if ($year < 1800 || $year > 2100) {
+            return new \WP_Error('invalid_payload', 'Year out of range.', ['status' => 400]);
+        }
+        if ($month < 1 || $month > 12) {
+            return new \WP_Error('invalid_payload', 'Month out of range.', ['status' => 400]);
+        }
+
+        $body_map = self::ephemeris_body_map();
+        $requested_bodies = isset($payload['bodies']) && is_array($payload['bodies']) ? $payload['bodies'] : [];
+        if ($requested_bodies === []) {
+            $requested_bodies = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'True Node', 'Chiron'];
+        }
+
+        $bodies = [];
+        foreach ($requested_bodies as $body) {
+            $key = sanitize_key(str_replace(' ', '-', (string) $body));
+            if (!isset($body_map[$key])) {
+                return new \WP_Error('invalid_payload', 'Unsupported ephemeris body requested.', ['status' => 400]);
+            }
+            $bodies[] = $body_map[$key];
+        }
+        $bodies = array_values(array_unique($bodies));
+        if (count($bodies) < 1 || count($bodies) > 24) {
+            return new \WP_Error('invalid_payload', 'Select between 1 and 24 ephemeris bodies.', ['status' => 400]);
+        }
+
+        $has_lat = isset($payload['lat']) && $payload['lat'] !== '';
+        $has_lng = isset($payload['lng']) && $payload['lng'] !== '';
+        $has_location = $has_lat || $has_lng;
+        if ($has_location && !($has_lat && $has_lng)) {
+            return new \WP_Error('invalid_payload', 'lat and lng must both be provided when selecting a location.', ['status' => 400]);
+        }
+
+        $lat = null;
+        $lng = null;
+        if ($has_location) {
+            $lat = (float) $payload['lat'];
+            $lng = (float) $payload['lng'];
+            if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+                return new \WP_Error('invalid_payload', 'Invalid lat/lng.', ['status' => 400]);
+            }
+        }
+
+        $local_bodies = ['Ascendant', 'MC', 'Vertex', 'Part of Fortune'];
+        if (!$has_location && array_intersect($local_bodies, $bodies) !== []) {
+            return new \WP_Error('invalid_payload', 'Coordinate-based points require a selected city.', ['status' => 400]);
+        }
+
+        try {
+            $start = new \DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $year, $month), new \DateTimeZone('UTC'));
+            $end = $start->modify('last day of this month');
+        } catch (\Exception $e) {
+            return new \WP_Error('invalid_payload', 'Invalid month.', ['status' => 400]);
+        }
+
+        $zodiac_type = isset($payload['zodiac_type']) ? sanitize_key((string) $payload['zodiac_type']) : 'tropical';
+        if (!in_array($zodiac_type, ['tropical', 'sidereal'], true)) {
+            $zodiac_type = 'tropical';
+        }
+
+        $api_payload = [
+            'start' => $start->format('Y-m-d\T00:00:00\Z'),
+            'end' => $end->format('Y-m-d\T00:00:00\Z'),
+            'step' => '1d',
+            'format' => 'table',
+            'response_mode' => 'table',
+            'table_style' => 'grid',
+            'zodiac_type' => $zodiac_type,
+            'bodies' => $bodies,
+        ];
+
+        if ($has_location) {
+            $api_payload['lat'] = $lat;
+            $api_payload['lng'] = $lng;
+            $api_payload['city'] = isset($payload['city']) ? sanitize_text_field((string) $payload['city']) : '';
+            $api_payload['tz_str'] = isset($payload['tz_str']) && (string) $payload['tz_str'] !== ''
+                ? sanitize_text_field((string) $payload['tz_str'])
+                : 'AUTO';
+            $api_payload['include_angles'] = true;
+            $api_payload['include_houses'] = true;
+        }
+
+        return $api_payload;
     }
 
     private static function normalize_simple_signs_response(array $result, string $point): array
@@ -2815,10 +3758,11 @@ Chart/Print Elements:
         }
 
         if ($expect_svg) {
-            if (strpos($raw, '<svg') === false) {
+            $svg = self::sanitize_svg_response($raw);
+            if ($svg === '') {
                 return new \WP_Error('invalid_svg', 'Invalid SVG response from upstream.', ['status' => 502]);
             }
-            return $raw;
+            return $svg;
         }
 
         $decoded = json_decode($raw, true);
@@ -2827,6 +3771,133 @@ Chart/Print Elements:
         }
 
         return $decoded;
+    }
+
+    private static function sanitize_svg_response(string $raw): string
+    {
+        $raw = trim($raw);
+        if ($raw === '' || stripos($raw, '<svg') === false) {
+            return '';
+        }
+
+        if (!class_exists('\DOMDocument')) {
+            return self::sanitize_svg_response_with_kses($raw);
+        }
+
+        $previous = libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $loaded = $dom->loadXML($raw, LIBXML_NONET);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        if (!$loaded || !$dom->documentElement || strtolower($dom->documentElement->localName) !== 'svg') {
+            return '';
+        }
+
+        self::sanitize_svg_node($dom->documentElement);
+        $svg = $dom->saveXML($dom->documentElement);
+
+        return is_string($svg) ? trim($svg) : '';
+    }
+
+    private static function sanitize_svg_node(\DOMNode $node): void
+    {
+        if ($node->nodeType === XML_COMMENT_NODE || $node->nodeType === XML_PI_NODE) {
+            if ($node->parentNode) {
+                $node->parentNode->removeChild($node);
+            }
+            return;
+        }
+
+        if ($node->nodeType === XML_ELEMENT_NODE) {
+            $blocked_elements = [
+                'script',
+                'foreignobject',
+                'iframe',
+                'object',
+                'embed',
+                'audio',
+                'video',
+                'canvas',
+                'link',
+                'meta',
+                'style',
+            ];
+            if (in_array(strtolower($node->localName), $blocked_elements, true)) {
+                if ($node->parentNode) {
+                    $node->parentNode->removeChild($node);
+                }
+                return;
+            }
+
+            if ($node->hasAttributes()) {
+                $remove_attributes = [];
+                foreach ($node->attributes as $attribute) {
+                    $name = strtolower($attribute->nodeName);
+                    $value = trim(html_entity_decode((string) $attribute->nodeValue, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+                    if (strpos($name, 'on') === 0) {
+                        $remove_attributes[] = $attribute->nodeName;
+                        continue;
+                    }
+
+                    if (in_array($name, ['href', 'xlink:href', 'src'], true) && strpos($value, '#') !== 0) {
+                        $remove_attributes[] = $attribute->nodeName;
+                        continue;
+                    }
+
+                    if (preg_match('/^\s*(?:javascript|vbscript|data):/i', $value)) {
+                        $remove_attributes[] = $attribute->nodeName;
+                        continue;
+                    }
+
+                    if ($name === 'style' && preg_match('/(?:url\s*\(|expression\s*\(|@import)/i', $value)) {
+                        $remove_attributes[] = $attribute->nodeName;
+                    }
+                }
+
+                foreach ($remove_attributes as $attribute_name) {
+                    $node->removeAttribute($attribute_name);
+                }
+            }
+        }
+
+        $children = [];
+        foreach ($node->childNodes as $child) {
+            $children[] = $child;
+        }
+
+        foreach ($children as $child) {
+            self::sanitize_svg_node($child);
+        }
+    }
+
+    private static function sanitize_svg_response_with_kses(string $raw): string
+    {
+        $allowed_svg = [
+            'svg' => ['xmlns' => true, 'viewbox' => true, 'viewBox' => true, 'width' => true, 'height' => true, 'role' => true, 'aria-label' => true],
+            'g' => ['id' => true, 'class' => true, 'transform' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'opacity' => true],
+            'path' => ['d' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'opacity' => true, 'transform' => true],
+            'circle' => ['cx' => true, 'cy' => true, 'r' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'opacity' => true],
+            'ellipse' => ['cx' => true, 'cy' => true, 'rx' => true, 'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'opacity' => true],
+            'line' => ['x1' => true, 'y1' => true, 'x2' => true, 'y2' => true, 'stroke' => true, 'stroke-width' => true, 'opacity' => true],
+            'polyline' => ['points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'opacity' => true],
+            'polygon' => ['points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'opacity' => true],
+            'rect' => ['x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true, 'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'opacity' => true],
+            'text' => ['x' => true, 'y' => true, 'fill' => true, 'font-size' => true, 'font-family' => true, 'font-weight' => true, 'text-anchor' => true, 'dominant-baseline' => true, 'transform' => true, 'opacity' => true],
+            'tspan' => ['x' => true, 'y' => true, 'dx' => true, 'dy' => true, 'fill' => true, 'font-size' => true, 'font-family' => true, 'font-weight' => true, 'text-anchor' => true],
+            'defs' => [],
+            'clipPath' => ['id' => true],
+            'mask' => ['id' => true],
+            'linearGradient' => ['id' => true, 'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true],
+            'radialGradient' => ['id' => true, 'cx' => true, 'cy' => true, 'r' => true],
+            'stop' => ['offset' => true, 'stop-color' => true, 'stop-opacity' => true],
+            'title' => [],
+            'desc' => [],
+        ];
+
+        $svg = trim(wp_kses($raw, $allowed_svg));
+        return stripos($svg, '<svg') !== false ? $svg : '';
     }
 
     private static function upstream_status_message(int $status): string
@@ -2906,7 +3977,7 @@ Chart/Print Elements:
             'root' => esc_url_raw(rest_url(self::REST_NAMESPACE . '/')),
             'nonce' => wp_create_nonce('wp_rest'),
             'permissions' => [
-                'canCalculate' => self::current_user_can_calculate(),
+                'canCalculate' => self::current_request_can_calculate(),
                 'calculationMessage' => self::frontend_access_message(),
             ],
             'report' => [
@@ -2929,7 +4000,12 @@ Chart/Print Elements:
             'style' => [
                 'showBorder' => (bool) self::get_option_value(self::OPTION_STYLE_SHOW_BORDER, true),
                 'backgroundColor' => (string) self::get_option_value(self::OPTION_STYLE_BG_COLOR, '#ffffff'),
+                'transparentBackground' => (bool) self::get_option_value(self::OPTION_STYLE_TRANSPARENT_BG, false),
                 'textColor' => (string) self::get_option_value(self::OPTION_STYLE_TEXT_COLOR, '#111111'),
+                'showHistory' => (bool) self::get_option_value(self::OPTION_STYLE_SHOW_HISTORY, true),
+                'historyBgColor' => (string) self::get_option_value(self::OPTION_STYLE_HISTORY_BG_COLOR, '#f9fafb'),
+                'historyBorderColor' => (string) self::get_option_value(self::OPTION_STYLE_HISTORY_BORDER_COLOR, '#e5e7eb'),
+                'historyTextColor' => (string) self::get_option_value(self::OPTION_STYLE_HISTORY_TEXT_COLOR, '#111111'),
                 'inputBorderRadius' => (int) self::get_option_value(self::OPTION_STYLE_INPUT_BORDER_RADIUS, 6),
                 'inputBorderColor' => (string) self::get_option_value(self::OPTION_STYLE_INPUT_BORDER_COLOR, '#d1d5db'),
                 'inputBgColor' => (string) self::get_option_value(self::OPTION_STYLE_INPUT_BG_COLOR, '#ffffff'),
@@ -2944,6 +4020,20 @@ Chart/Print Elements:
                 'focusRingColor' => (string) self::get_option_value(self::OPTION_STYLE_FOCUS_RING_COLOR, '#2563eb'),
                 'astroFontSize' => (int) self::get_option_value(self::OPTION_STYLE_ASTRO_FONT_SIZE, 20),
                 'astroFontColor' => (string) self::get_option_value(self::OPTION_STYLE_ASTRO_FONT_COLOR, '#111111'),
+            ],
+            'ephemerisStyle' => [
+                'tableBgColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_BG_COLOR, '#ffffff'),
+                'tableTextColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR, '#111111'),
+                'tableBorderColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_BORDER_COLOR, '#e5e7eb'),
+                'headerBgColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_HEADER_BG_COLOR, '#f8fafc'),
+                'headerTextColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_HEADER_TEXT_COLOR, '#111111'),
+                'badgeBgColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_BADGE_BG_COLOR, '#f8fafc'),
+                'badgeTextColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_BADGE_TEXT_COLOR, '#475569'),
+                'todayBgColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_TODAY_BG_COLOR, '#f8fafc'),
+                'todayAccentColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_TODAY_ACCENT_COLOR, '#2563eb'),
+                'retrogradeColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_RETROGRADE_COLOR, '#b91c1c'),
+                'ingressColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_INGRESS_COLOR, '#1d4ed8'),
+                'stationColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_STATION_COLOR, '#a16207'),
             ],
             'typography' => [
                 'h2' => (int) self::get_option_value(self::OPTION_TYPO_H2, 28),

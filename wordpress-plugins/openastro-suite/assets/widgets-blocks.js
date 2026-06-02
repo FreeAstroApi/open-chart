@@ -136,6 +136,12 @@
       title: i18n.__('Simple Sign: Midheaven', 'astrology-suite-freeastroapi'),
       icon: 'arrow-up',
       description: i18n.__('Includes input form + Midheaven sign result.', 'astrology-suite-freeastroapi')
+    },
+    {
+      name: 'astrology-suite/ephemeris',
+      title: i18n.__('Astrology Suite Ephemeris', 'astrology-suite-freeastroapi'),
+      icon: 'calendar-alt',
+      description: i18n.__('Includes monthly ephemeris table with selectable bodies and optional local points.', 'astrology-suite-freeastroapi')
     }
   ];
 

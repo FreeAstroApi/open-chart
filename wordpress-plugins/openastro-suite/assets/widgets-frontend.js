@@ -58,17 +58,59 @@
     aqu: 'N',
     pis: 'M'
   };
+  var EPHEMERIS_MONTHS = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+  var EPHEMERIS_BODIES = [
+    { id: 'sun', api: 'Sun', label: 'Sun', glyph: '☉', group: 'Core bodies' },
+    { id: 'moon', api: 'Moon', label: 'Moon', glyph: '☽', group: 'Core bodies' },
+    { id: 'mercury', api: 'Mercury', label: 'Mercury', glyph: '☿', group: 'Core bodies' },
+    { id: 'venus', api: 'Venus', label: 'Venus', glyph: '♀', group: 'Core bodies' },
+    { id: 'mars', api: 'Mars', label: 'Mars', glyph: '♂', group: 'Core bodies' },
+    { id: 'jupiter', api: 'Jupiter', label: 'Jupiter', glyph: '♃', group: 'Core bodies' },
+    { id: 'saturn', api: 'Saturn', label: 'Saturn', glyph: '♄', group: 'Core bodies' },
+    { id: 'uranus', api: 'Uranus', label: 'Uranus', glyph: '♅', group: 'Core bodies' },
+    { id: 'neptune', api: 'Neptune', label: 'Neptune', glyph: '♆', group: 'Core bodies' },
+    { id: 'pluto', api: 'Pluto', label: 'Pluto', glyph: '♇', group: 'Core bodies' },
+    { id: 'true_node', api: 'True Node', label: 'True Node', tableLabel: 'North Node', glyph: '☊', group: 'Nodes and lunar points' },
+    { id: 'mean_node', api: 'Mean Node', label: 'Mean Node', glyph: '☊', group: 'Nodes and lunar points' },
+    { id: 'lilith', api: 'Lilith', label: 'Lilith', glyph: '⚸', group: 'Nodes and lunar points' },
+    { id: 'true_lilith', api: 'True Lilith', label: 'True Lilith', glyph: '⚸', group: 'Nodes and lunar points' },
+    { id: 'chiron', api: 'Chiron', label: 'Chiron', glyph: '⚷', group: 'Asteroids and minor bodies' },
+    { id: 'ceres', api: 'Ceres', label: 'Ceres', glyph: '⚳', group: 'Asteroids and minor bodies' },
+    { id: 'pallas', api: 'Pallas', label: 'Pallas', glyph: '⚴', group: 'Asteroids and minor bodies' },
+    { id: 'juno', api: 'Juno', label: 'Juno', glyph: '⚵', group: 'Asteroids and minor bodies' },
+    { id: 'vesta', api: 'Vesta', label: 'Vesta', glyph: '⚶', group: 'Asteroids and minor bodies' },
+    { id: 'pholus', api: 'Pholus', label: 'Pholus', glyph: 'φ', group: 'Asteroids and minor bodies' },
+    { id: 'ascendant', api: 'Ascendant', label: 'Ascendant', glyph: 'ASC', group: 'Coordinate-based points', local: true },
+    { id: 'mc', api: 'MC', label: 'MC', glyph: 'MC', group: 'Coordinate-based points', local: true },
+    { id: 'vertex', api: 'Vertex', label: 'Vertex', glyph: 'Vx', group: 'Coordinate-based points', local: true },
+    { id: 'part_of_fortune', api: 'Part of Fortune', label: 'Part of Fortune', glyph: '⊗', group: 'Coordinate-based points', local: true }
+  ];
+  var EPHEMERIS_DEFAULT_BODY_IDS = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'true_node', 'chiron'];
   var HISTORY_KEY = 'openastro_history_v1';
   var HISTORY_LIMIT = 20;
 
   function getCfg() {
-    var cfg = window.AstrologySuiteBlocks || window.OpenAstroBlocks || { root: '/wp-json/astrology-suite/v1/', nonce: '', permissions: {}, report: {}, style: {}, typography: {} };
+    var cfg = window.AstrologySuiteBlocks || window.OpenAstroBlocks || { root: '/wp-json/astrology-suite/v1/', nonce: '', permissions: {}, report: {}, style: {}, ephemerisStyle: {}, typography: {} };
     cfg.permissions = cfg.permissions || {};
     cfg.report = cfg.report || {};
     cfg.style = cfg.style || {};
+    cfg.ephemerisStyle = cfg.ephemerisStyle || {};
     cfg.typography = cfg.typography || {};
     cfg.permissions.canCalculate = !!cfg.permissions.canCalculate;
-    cfg.permissions.calculationMessage = cfg.permissions.calculationMessage || 'This astrology form is available only to logged-in users who can edit posts on this site.';
+    cfg.permissions.calculationMessage = cfg.permissions.calculationMessage || 'This astrology form is disabled for public visitors. Enable public calculations in Astrology Suite API settings, or log in with permission to edit posts.';
     cfg.report.detailLevel = cfg.report.detailLevel === 'concise' ? 'concise' : 'full';
     cfg.report.maxPlanets = Number(cfg.report.maxPlanets || 13);
     cfg.report.maxAspects = Number(cfg.report.maxAspects || 40);
@@ -77,6 +119,7 @@
     cfg.report.showPrintButton = cfg.report.showPrintButton !== false;
     cfg.style.showBorder = cfg.style.showBorder !== false;
     cfg.style.backgroundColor = cfg.style.backgroundColor || '#ffffff';
+    cfg.style.transparentBackground = !!cfg.style.transparentBackground;
     cfg.style.textColor = cfg.style.textColor || '#111111';
     cfg.style.inputBorderRadius = Number(cfg.style.inputBorderRadius || 6);
     cfg.style.inputBorderColor = cfg.style.inputBorderColor || '#d1d5db';
@@ -92,6 +135,22 @@
     cfg.style.focusRingColor = cfg.style.focusRingColor || '#2563eb';
     cfg.style.astroFontSize = Number(cfg.style.astroFontSize || 20);
     cfg.style.astroFontColor = cfg.style.astroFontColor || '#111111';
+    cfg.style.showHistory = cfg.style.showHistory !== false;
+    cfg.style.historyBgColor = cfg.style.historyBgColor || '#f9fafb';
+    cfg.style.historyBorderColor = cfg.style.historyBorderColor || '#e5e7eb';
+    cfg.style.historyTextColor = cfg.style.historyTextColor || '#111111';
+    cfg.ephemerisStyle.tableBgColor = cfg.ephemerisStyle.tableBgColor || '#ffffff';
+    cfg.ephemerisStyle.tableTextColor = cfg.ephemerisStyle.tableTextColor || '#111111';
+    cfg.ephemerisStyle.tableBorderColor = cfg.ephemerisStyle.tableBorderColor || '#e5e7eb';
+    cfg.ephemerisStyle.headerBgColor = cfg.ephemerisStyle.headerBgColor || '#f8fafc';
+    cfg.ephemerisStyle.headerTextColor = cfg.ephemerisStyle.headerTextColor || '#111111';
+    cfg.ephemerisStyle.badgeBgColor = cfg.ephemerisStyle.badgeBgColor || '#f8fafc';
+    cfg.ephemerisStyle.badgeTextColor = cfg.ephemerisStyle.badgeTextColor || '#475569';
+    cfg.ephemerisStyle.todayBgColor = cfg.ephemerisStyle.todayBgColor || '#f8fafc';
+    cfg.ephemerisStyle.todayAccentColor = cfg.ephemerisStyle.todayAccentColor || '#2563eb';
+    cfg.ephemerisStyle.retrogradeColor = cfg.ephemerisStyle.retrogradeColor || '#b91c1c';
+    cfg.ephemerisStyle.ingressColor = cfg.ephemerisStyle.ingressColor || '#1d4ed8';
+    cfg.ephemerisStyle.stationColor = cfg.ephemerisStyle.stationColor || '#a16207';
     cfg.typography.h2 = Number(cfg.typography.h2 || 28);
     cfg.typography.h3 = Number(cfg.typography.h3 || 22);
     cfg.typography.h4 = Number(cfg.typography.h4 || 18);
@@ -489,6 +548,363 @@
     });
   }
 
+  function setupCityAutocomplete(options) {
+    var input = options.input;
+    var wrap = options.wrap;
+    var results = options.results;
+    var message = options.message;
+    var resultsId = options.resultsId;
+    var onSelect = typeof options.onSelect === 'function' ? options.onSelect : function () {};
+    var timer = null;
+    var requestId = 0;
+    var suggestions = [];
+    var activeIndex = -1;
+
+    function setExpanded(expanded) {
+      var isExpanded = expanded && suggestions.length;
+      input.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      wrap.classList.toggle('is-open', !!isExpanded);
+      if (!expanded) {
+        input.removeAttribute('aria-activedescendant');
+      }
+    }
+
+    function setMessage(text) {
+      message.textContent = text || '';
+    }
+
+    function clearResults() {
+      suggestions = [];
+      activeIndex = -1;
+      results.innerHTML = '';
+      setExpanded(false);
+    }
+
+    function setActiveIndex(index) {
+      var buttons = results.querySelectorAll('.openastro-result-btn');
+      if (!suggestions.length || !buttons.length) {
+        activeIndex = -1;
+        input.removeAttribute('aria-activedescendant');
+        return;
+      }
+
+      activeIndex = (index + suggestions.length) % suggestions.length;
+      Array.prototype.forEach.call(buttons, function (button, idx) {
+        var isActive = idx === activeIndex;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        if (isActive) {
+          input.setAttribute('aria-activedescendant', button.id);
+          button.scrollIntoView({ block: 'nearest' });
+        }
+      });
+    }
+
+    function choose(item) {
+      requestId += 1;
+      input.value = cityValueLabel(item);
+      setMessage('Selected ' + cityValueLabel(item) + (cityTimezoneLabel(item) ? ' - ' + cityTimezoneLabel(item) : '') + '.');
+      clearResults();
+      onSelect(item);
+    }
+
+    function renderSuggestions(items, query) {
+      results.innerHTML = '';
+      suggestions = items;
+      activeIndex = -1;
+
+      items.forEach(function (item, idx) {
+        var button = create('button', {
+          id: resultsId + '-option-' + idx,
+          type: 'button',
+          class: 'openastro-result-btn',
+          role: 'option',
+          'aria-selected': 'false',
+          'aria-label': citySuggestionLabel(item)
+        });
+        var main = create('span', { class: 'openastro-result-main' });
+        var primary = create('span', { class: 'openastro-result-primary' });
+        var countryCode = cityCountryCode(item);
+        primary.appendChild(create('span', { class: 'openastro-result-name' }, item.name || 'Unknown city'));
+        if (countryCode) {
+          primary.appendChild(create('span', { class: 'openastro-result-country' }, countryCode));
+        }
+        main.appendChild(primary);
+        button.appendChild(main);
+
+        var metaParts = cityMetaParts(item);
+        if (metaParts.length) {
+          var meta = create('span', { class: 'openastro-result-meta' });
+          metaParts.forEach(function (part) {
+            meta.appendChild(create('span', { class: 'openastro-result-meta-item' }, part));
+          });
+          button.appendChild(meta);
+        }
+
+        button.addEventListener('click', function () {
+          choose(item);
+        });
+        results.appendChild(button);
+      });
+
+      setExpanded(true);
+      setActiveIndex(0);
+      setMessage(items.length + ' match' + (items.length === 1 ? '' : 'es') + ' for "' + query + '". Use arrow keys or click a city.');
+    }
+
+    input.addEventListener('input', function () {
+      var parsedSearch = parseCitySearchInput(input.value);
+      onSelect(null);
+      clearResults();
+      setMessage('');
+      if (timer) {
+        clearTimeout(timer);
+      }
+      requestId += 1;
+      var currentRequestId = requestId;
+      if (parsedSearch.query.length < 2) {
+        if (parsedSearch.query.length > 0) {
+          setMessage('Type at least 2 characters to search cities.');
+        }
+        return;
+      }
+
+      setMessage('Searching cities...');
+      timer = setTimeout(function () {
+        var path = '/geo/search?q=' + encodeURIComponent(parsedSearch.query) + '&limit=8';
+        if (parsedSearch.country) {
+          path += '&country=' + encodeURIComponent(parsedSearch.country);
+        }
+
+        api(path, { method: 'GET' })
+          .then(function (result) {
+            if (currentRequestId !== requestId) {
+              return;
+            }
+            clearResults();
+            setMessage('');
+            if (!result.ok || !result.body || !Array.isArray(result.body.results)) {
+              setMessage('Could not load city suggestions.');
+              return;
+            }
+            if (result.body.results.length === 0) {
+              setMessage('No cities found. Try another query.');
+              return;
+            }
+            renderSuggestions(sortCitySuggestions(result.body.results, parsedSearch.query), parsedSearch.query);
+          })
+          .catch(function () {
+            if (currentRequestId !== requestId) {
+              return;
+            }
+            clearResults();
+            setMessage('Could not load city suggestions.');
+          });
+      }, 300);
+    });
+
+    input.addEventListener('keydown', function (event) {
+      if (!suggestions.length) {
+        return;
+      }
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveIndex(activeIndex < 0 ? 0 : activeIndex + 1);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveIndex(activeIndex < 0 ? suggestions.length - 1 : activeIndex - 1);
+      } else if (event.key === 'Enter' && activeIndex >= 0) {
+        event.preventDefault();
+        choose(suggestions[activeIndex]);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        clearResults();
+        setMessage('');
+      }
+    });
+
+    input.addEventListener('blur', function () {
+      window.setTimeout(function () {
+        if (!results.contains(document.activeElement)) {
+          clearResults();
+        }
+      }, 120);
+    });
+
+    return {
+      clear: function () {
+        requestId += 1;
+        input.value = '';
+        setMessage('');
+        clearResults();
+        onSelect(null);
+      }
+    };
+  }
+
+  function isEphemerisMode(mode) {
+    return mode === 'ephemeris';
+  }
+
+  function ephemerisBodyById(id) {
+    for (var i = 0; i < EPHEMERIS_BODIES.length; i += 1) {
+      if (EPHEMERIS_BODIES[i].id === id) {
+        return EPHEMERIS_BODIES[i];
+      }
+    }
+    return null;
+  }
+
+  function normalizeEphemerisColumn(value) {
+    return String(value || '').toLowerCase().replace(/[\s-]+/g, '_');
+  }
+
+  function ephemerisBodyByApi(api) {
+    var normalized = normalizeEphemerisColumn(api);
+    if (normalized === 'north_node') {
+      normalized = 'true_node';
+    }
+    for (var i = 0; i < EPHEMERIS_BODIES.length; i += 1) {
+      if (normalizeEphemerisColumn(EPHEMERIS_BODIES[i].api) === normalized) {
+        return EPHEMERIS_BODIES[i];
+      }
+    }
+    return null;
+  }
+
+  function ephemerisMonthTitle(year, month) {
+    return (EPHEMERIS_MONTHS[month - 1] || 'Month') + ' ' + year;
+  }
+
+  function ephemerisTodayIso() {
+    var now = new Date();
+    return [now.getFullYear(), pad2(now.getMonth() + 1), pad2(now.getDate())].join('-');
+  }
+
+  function ephemerisColumnLabel(column) {
+    if (column === 'date') return 'Date';
+    if (column === 'weekday') return 'Day';
+    if (column === 'sidereal_time') return 'GST';
+    var body = ephemerisBodyByApi(column);
+    return body ? (body.tableLabel || body.label) : column;
+  }
+
+  function ephemerisHeaderHtml(column) {
+    var body = ephemerisBodyByApi(column);
+    if (!body) {
+      return '<span class="' + expandClassNames('openastro-ephemeris-head-text') + '">' + esc(ephemerisColumnLabel(column)) + '</span>';
+    }
+
+    return '<span class="' + expandClassNames('openastro-ephemeris-head-body') + '">' +
+      '<span class="' + expandClassNames('openastro-ephemeris-glyph') + '">' + esc(body.glyph) + '</span>' +
+      '<span class="' + expandClassNames('openastro-ephemeris-head-label') + '">' + esc((body.tableLabel || body.label).toUpperCase()) + '</span>' +
+      '</span>';
+  }
+
+  function ephemerisCellText(row, column) {
+    if (column === 'date') {
+      if (row.date && typeof row.date === 'object') {
+        return row.date.day || row.date.iso || '';
+      }
+      return row.date || '';
+    }
+    if (column === 'weekday') {
+      return row.weekday || '';
+    }
+    if (column === 'sidereal_time') {
+      return row.sidereal_time || row.gst || '';
+    }
+
+    var cell = row[column];
+    if (cell && typeof cell === 'object') {
+      return cell.text || cell.position_text || cell.degree_text || '';
+    }
+    return cell || '';
+  }
+
+  function ephemerisCellClasses(row, column) {
+    var classes = ['openastro-ephemeris-cell'];
+    if (column === 'date') classes.push('openastro-ephemeris-date-cell');
+    if (column === 'weekday') classes.push('openastro-ephemeris-day-cell');
+    if (column === 'sidereal_time') classes.push('openastro-ephemeris-gst-cell');
+    var cell = row[column];
+    if (cell && typeof cell === 'object') {
+      if (cell.motion_marker) classes.push('is-retrograde');
+      if (cell.entered_sign) classes.push('is-ingress');
+      if (cell.station) classes.push('is-station');
+    }
+    return expandClassNames(classes.join(' '));
+  }
+
+  function ephemerisTableHtml(data) {
+    var rows = Array.isArray(data && data.rows) ? data.rows : [];
+    var columns = data && data.display && Array.isArray(data.display.columns)
+      ? data.display.columns
+      : ['date', 'weekday', 'sidereal_time'];
+    var today = ephemerisTodayIso();
+    var html = '<table class="' + expandClassNames('openastro-ephemeris-table') + '"><thead><tr>';
+
+    columns.forEach(function (column) {
+      var colClass = 'openastro-ephemeris-col-' + normalizeEphemerisColumn(column);
+      html += '<th class="' + expandClassNames(colClass) + '" scope="col">' + ephemerisHeaderHtml(column) + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    if (!rows.length) {
+      html += '<tr><td colspan="' + esc(columns.length) + '" class="' + expandClassNames('openastro-ephemeris-empty-cell') + '">No ephemeris rows returned.</td></tr>';
+    } else {
+      rows.forEach(function (row) {
+        var rowIso = row.date && typeof row.date === 'object' ? row.date.iso : '';
+        var rowClass = rowIso === today ? 'openastro-ephemeris-row is-today' : 'openastro-ephemeris-row';
+        html += '<tr class="' + expandClassNames(rowClass) + '">';
+        columns.forEach(function (column) {
+          html += '<td class="' + ephemerisCellClasses(row, column) + '">' + esc(ephemerisCellText(row, column) || '-') + '</td>';
+        });
+        html += '</tr>';
+      });
+    }
+
+    html += '</tbody></table>';
+    return html;
+  }
+
+  function ephemerisCsvValue(value) {
+    var text = String(value || '');
+    if (/[",\n]/.test(text)) {
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
+    return text;
+  }
+
+  function ephemerisCsv(data) {
+    var rows = Array.isArray(data && data.rows) ? data.rows : [];
+    var columns = data && data.display && Array.isArray(data.display.columns)
+      ? data.display.columns
+      : ['date', 'weekday', 'sidereal_time'];
+    var lines = [];
+    lines.push(columns.map(function (column) {
+      return ephemerisCsvValue(ephemerisColumnLabel(column));
+    }).join(','));
+    rows.forEach(function (row) {
+      lines.push(columns.map(function (column) {
+        return ephemerisCsvValue(ephemerisCellText(row, column));
+      }).join(','));
+    });
+    return lines.join('\n');
+  }
+
+  function downloadEphemerisCsv(data, filename) {
+    var blob = new Blob([ephemerisCsv(data)], { type: 'text/csv;charset=utf-8' });
+    var url = window.URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
   function textFromEntry(entry) {
     if (!entry) return '';
     if (typeof entry === 'string') return entry.trim();
@@ -673,6 +1089,326 @@
     }
   }
 
+  function mountEphemeris(container, cfg) {
+    var now = new Date();
+    var selectedCity = null;
+    var currentData = null;
+    var selectedBodies = {};
+    EPHEMERIS_DEFAULT_BODY_IDS.forEach(function (id) {
+      selectedBodies[id] = true;
+    });
+
+    var shell = create('section', { class: 'openastro-ephemeris' });
+    var intro = create('div', { class: 'openastro-ephemeris-intro' });
+    intro.appendChild(create('span', { class: 'openastro-ephemeris-eyebrow' }, 'Astrology Tools'));
+    intro.appendChild(create('h2', { class: 'openastro-ephemeris-title' }, 'Free Ephemeris Table'));
+
+    var toolbar = create('form', { class: 'openastro-ephemeris-toolbar' });
+    var nav = create('div', { class: 'openastro-ephemeris-nav' });
+    var prev = create('button', { type: 'button', class: 'openastro-ephemeris-icon-btn', 'aria-label': 'Previous month' }, '‹');
+    var month = create('input', { type: 'number', min: '1', max: '12', step: '1', class: 'openastro-input openastro-ephemeris-month', 'aria-label': 'Month' });
+    var year = create('input', { type: 'number', min: '1800', max: '2100', step: '1', class: 'openastro-input openastro-ephemeris-year', 'aria-label': 'Year' });
+    var monthTitle = create('span', { class: 'openastro-ephemeris-month-title' });
+    var next = create('button', { type: 'button', class: 'openastro-ephemeris-icon-btn', 'aria-label': 'Next month' }, '›');
+    var today = create('button', { type: 'button', class: 'openastro-ephemeris-secondary-btn' }, 'Today');
+    var zodiac = create('select', { class: 'openastro-input openastro-ephemeris-zodiac', 'aria-label': 'Zodiac type' });
+    zodiac.appendChild(create('option', { value: 'tropical' }, 'Tropical'));
+    zodiac.appendChild(create('option', { value: 'sidereal' }, 'Sidereal'));
+
+    month.value = String(now.getMonth() + 1);
+    year.value = String(now.getFullYear());
+    nav.appendChild(prev);
+    nav.appendChild(month);
+    nav.appendChild(year);
+    nav.appendChild(monthTitle);
+    nav.appendChild(next);
+    nav.appendChild(today);
+    nav.appendChild(zodiac);
+
+    var cityId = 'openastro-ephemeris-city-' + Math.random().toString(36).slice(2, 10);
+    var cityResultsId = 'openastro-ephemeris-city-results-' + Math.random().toString(36).slice(2, 10);
+    var cityMessageId = 'openastro-ephemeris-city-message-' + Math.random().toString(36).slice(2, 10);
+    var cityWrap = create('div', { class: 'openastro-city-field openastro-ephemeris-city-field' });
+    var city = create('input', {
+      id: cityId,
+      type: 'text',
+      class: 'openastro-input openastro-city-input',
+      placeholder: 'Optional city for ASC / MC',
+      role: 'combobox',
+      'aria-autocomplete': 'list',
+      'aria-haspopup': 'listbox',
+      'aria-controls': cityResultsId,
+      'aria-describedby': cityMessageId,
+      'aria-expanded': 'false'
+    });
+    var cityMessage = create('p', { id: cityMessageId, class: 'openastro-city-loading', 'aria-live': 'polite' }, '');
+    var cityResults = create('div', { id: cityResultsId, class: 'openastro-results', role: 'listbox', 'aria-label': 'City suggestions' });
+    cityWrap.appendChild(city);
+    cityWrap.appendChild(cityMessage);
+    cityWrap.appendChild(cityResults);
+
+    var actions = create('div', { class: 'openastro-ephemeris-actions' });
+    var refresh = create('button', { type: 'submit', class: 'openastro-ephemeris-secondary-btn' }, 'Refresh');
+    var download = create('button', { type: 'button', class: 'openastro-ephemeris-secondary-btn' }, 'Download');
+    actions.appendChild(refresh);
+    actions.appendChild(download);
+
+    var toolbarNote = create('p', { class: 'openastro-ephemeris-note' }, 'Default ephemeris is geocentric at GMT 00:00. Select a city only when you want local points like ASC, MC, Vertex, and Part of Fortune.');
+    toolbar.appendChild(nav);
+    toolbar.appendChild(cityWrap);
+    toolbar.appendChild(actions);
+    toolbar.appendChild(toolbarNote);
+
+    var filters = create('section', { class: 'openastro-ephemeris-filter' });
+    var filterHeading = create('div', { class: 'openastro-ephemeris-filter-heading' });
+    filterHeading.appendChild(create('h3', null, 'Bodies'));
+    filterHeading.appendChild(create('p', null, 'Choose the columns shown in the month grid.'));
+    filters.appendChild(filterHeading);
+
+    var chipById = {};
+    var groups = [];
+    EPHEMERIS_BODIES.forEach(function (body) {
+      if (groups.indexOf(body.group) === -1) {
+        groups.push(body.group);
+      }
+    });
+
+    groups.forEach(function (group) {
+      var groupEl = create('div', { class: 'openastro-ephemeris-body-group' });
+      groupEl.appendChild(create('h4', null, group));
+      var chips = create('div', { class: 'openastro-ephemeris-body-chips' });
+      EPHEMERIS_BODIES.filter(function (body) {
+        return body.group === group;
+      }).forEach(function (body) {
+        var chip = create('button', {
+          type: 'button',
+          class: 'openastro-ephemeris-chip',
+          'data-body-id': body.id,
+          'aria-pressed': selectedBodies[body.id] ? 'true' : 'false'
+        });
+        chip.appendChild(create('span', { class: 'openastro-ephemeris-glyph' }, body.glyph));
+        chip.appendChild(create('span', null, body.label));
+        chipById[body.id] = chip;
+        chips.appendChild(chip);
+      });
+      groupEl.appendChild(chips);
+      filters.appendChild(groupEl);
+    });
+    filters.appendChild(create('p', { class: 'openastro-ephemeris-local-note' }, 'Coordinate-based points unlock when a city is selected in the top toolbar.'));
+
+    var tableCard = create('section', { class: 'openastro-ephemeris-table-card' });
+    var tableTop = create('div', { class: 'openastro-ephemeris-table-top' });
+    var tableMeta = create('span', { class: 'openastro-ephemeris-table-meta' }, 'GMT 00:00');
+    var tableTitle = create('h3', null, '');
+    var rowBadge = create('span', { class: 'openastro-ephemeris-row-badge' }, '0 rows');
+    tableTop.appendChild(tableMeta);
+    tableTop.appendChild(tableTitle);
+    tableTop.appendChild(rowBadge);
+    var viewport = create('div', { class: 'openastro-ephemeris-table-viewport' });
+    var status = create('p', { class: 'openastro-status openastro-ephemeris-status', 'aria-live': 'polite' }, '');
+    tableCard.appendChild(tableTop);
+    tableCard.appendChild(viewport);
+    tableCard.appendChild(status);
+
+    shell.appendChild(intro);
+    shell.appendChild(toolbar);
+    shell.appendChild(filters);
+    shell.appendChild(tableCard);
+    container.appendChild(shell);
+
+    function getYear() {
+      var value = Number(year.value || now.getFullYear());
+      if (!Number.isFinite(value)) value = now.getFullYear();
+      value = Math.max(1800, Math.min(2100, Math.round(value)));
+      year.value = String(value);
+      return value;
+    }
+
+    function getMonth() {
+      var value = Number(month.value || (now.getMonth() + 1));
+      if (!Number.isFinite(value)) value = now.getMonth() + 1;
+      value = Math.max(1, Math.min(12, Math.round(value)));
+      month.value = String(value);
+      return value;
+    }
+
+    function updateMonthTitle() {
+      tableTitle.textContent = ephemerisMonthTitle(getYear(), getMonth());
+      monthTitle.textContent = ephemerisMonthTitle(getYear(), getMonth());
+    }
+
+    function selectedBodyIds() {
+      return EPHEMERIS_BODIES.filter(function (body) {
+        return !!selectedBodies[body.id];
+      }).map(function (body) {
+        return body.id;
+      });
+    }
+
+    function selectedBodyApis() {
+      return selectedBodyIds().map(function (id) {
+        return ephemerisBodyById(id).api;
+      });
+    }
+
+    function syncChips() {
+      EPHEMERIS_BODIES.forEach(function (body) {
+        var chip = chipById[body.id];
+        if (!chip) {
+          return;
+        }
+        var disabled = !!body.local && !selectedCity;
+        if (disabled) {
+          selectedBodies[body.id] = false;
+        }
+        chip.disabled = disabled;
+        chip.classList.toggle('is-selected', !!selectedBodies[body.id]);
+        chip.setAttribute('aria-pressed', selectedBodies[body.id] ? 'true' : 'false');
+      });
+    }
+
+    function buildPayload() {
+      return {
+        year: getYear(),
+        month: getMonth(),
+        zodiac_type: zodiac.value === 'sidereal' ? 'sidereal' : 'tropical',
+        bodies: selectedBodyApis(),
+        city: selectedCity ? selectedCity.name : '',
+        lat: selectedCity ? selectedCity.lat : '',
+        lng: selectedCity ? selectedCity.lng : '',
+        tz_str: selectedCity ? cityTimezoneLabel(selectedCity) || 'AUTO' : ''
+      };
+    }
+
+    function setLoading(loading) {
+      refresh.disabled = loading;
+      prev.disabled = loading;
+      next.disabled = loading;
+      today.disabled = loading;
+      status.textContent = loading ? 'Loading ephemeris...' : status.textContent;
+    }
+
+    function renderEphemeris(data, payload) {
+      var rows = Array.isArray(data && data.rows) ? data.rows : [];
+      currentData = data;
+      tableMeta.textContent = payload.lat !== '' && payload.lng !== ''
+        ? ((payload.tz_str && payload.tz_str !== 'AUTO') ? payload.tz_str : 'Local time')
+        : 'GMT 00:00';
+      tableTitle.textContent = ephemerisMonthTitle(payload.year, payload.month);
+      rowBadge.textContent = rows.length + ' row' + (rows.length === 1 ? '' : 's');
+      viewport.innerHTML = ephemerisTableHtml(data);
+      status.textContent = rows.length ? 'Done.' : 'No ephemeris rows returned.';
+      window.dispatchEvent(new CustomEvent('openastro:ephemeris:generated', {
+        detail: {
+          request: payload,
+          response: data
+        }
+      }));
+    }
+
+    function loadEphemeris() {
+      updateMonthTitle();
+      syncChips();
+      if (!selectedBodyIds().length) {
+        status.textContent = 'Select at least one body.';
+        return;
+      }
+
+      var payload = buildPayload();
+      setLoading(true);
+      api('/western/ephemeris', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (result) {
+          if (!result.ok || !result.body) {
+            status.textContent = (result.body && result.body.message) || 'Could not load ephemeris.';
+            return;
+          }
+          renderEphemeris(result.body, payload);
+        })
+        .catch(function () {
+          status.textContent = 'Unexpected error while loading ephemeris.';
+        })
+        .finally(function () {
+          setLoading(false);
+        });
+    }
+
+    setupCityAutocomplete({
+      input: city,
+      wrap: cityWrap,
+      results: cityResults,
+      message: cityMessage,
+      resultsId: cityResultsId,
+      onSelect: function (item) {
+        selectedCity = item;
+        syncChips();
+      }
+    });
+
+    Object.keys(chipById).forEach(function (id) {
+      chipById[id].addEventListener('click', function () {
+        var body = ephemerisBodyById(id);
+        if (!body || (body.local && !selectedCity)) {
+          return;
+        }
+        selectedBodies[id] = !selectedBodies[id];
+        syncChips();
+        loadEphemeris();
+      });
+    });
+
+    toolbar.addEventListener('submit', function (event) {
+      event.preventDefault();
+      loadEphemeris();
+    });
+
+    function shiftMonth(delta) {
+      var nextMonth = getMonth() + delta;
+      var nextYear = getYear();
+      if (nextMonth < 1) {
+        nextMonth = 12;
+        nextYear -= 1;
+      } else if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear += 1;
+      }
+      year.value = String(Math.max(1800, Math.min(2100, nextYear)));
+      month.value = String(nextMonth);
+      loadEphemeris();
+    }
+
+    prev.addEventListener('click', function () {
+      shiftMonth(-1);
+    });
+    next.addEventListener('click', function () {
+      shiftMonth(1);
+    });
+    today.addEventListener('click', function () {
+      var todayDate = new Date();
+      year.value = String(todayDate.getFullYear());
+      month.value = String(todayDate.getMonth() + 1);
+      loadEphemeris();
+    });
+    zodiac.addEventListener('change', loadEphemeris);
+    month.addEventListener('change', loadEphemeris);
+    year.addEventListener('change', loadEphemeris);
+    download.addEventListener('click', function () {
+      if (!currentData) {
+        status.textContent = 'Load ephemeris before downloading.';
+        return;
+      }
+      var payload = buildPayload();
+      downloadEphemerisCsv(currentData, 'ephemeris-' + payload.year + '-' + pad2(payload.month) + '.csv');
+    });
+
+    updateMonthTitle();
+    syncChips();
+    loadEphemeris();
+  }
+
   function mount(container) {
     var mode = container.getAttribute('data-mode') || 'chart-report';
     var cfg = getCfg();
@@ -681,13 +1417,16 @@
     var simpleMode = isSimpleSignMode(mode);
 
     container.classList.add('wp-block-astrology-suite-widget');
-    setSuiteVariable(container, '--openastro-bg', cfg.style.backgroundColor);
+    setSuiteVariable(container, '--openastro-bg', cfg.style.transparentBackground ? 'transparent' : cfg.style.backgroundColor);
     setSuiteVariable(container, '--openastro-text', cfg.style.textColor);
     setSuiteVariable(container, '--openastro-input-radius', cfg.style.inputBorderRadius + 'px');
     setSuiteVariable(container, '--openastro-input-border-color', cfg.style.inputBorderColor);
     setSuiteVariable(container, '--openastro-input-bg', cfg.style.inputBgColor);
     setSuiteVariable(container, '--openastro-input-text', cfg.style.inputTextColor);
     setSuiteVariable(container, '--openastro-input-placeholder', cfg.style.inputPlaceholderColor);
+    setSuiteVariable(container, '--openastro-history-bg', cfg.style.historyBgColor);
+    setSuiteVariable(container, '--openastro-history-border', cfg.style.historyBorderColor);
+    setSuiteVariable(container, '--openastro-history-text', cfg.style.historyTextColor);
     setSuiteVariable(container, '--openastro-button-radius', cfg.style.buttonBorderRadius + 'px');
     setSuiteVariable(container, '--openastro-button-bg', cfg.style.buttonBgColor);
     setSuiteVariable(container, '--openastro-button-text', cfg.style.buttonTextColor);
@@ -705,6 +1444,18 @@
     setSuiteVariable(container, '--openastro-font-input', cfg.typography.input + 'px');
     setSuiteVariable(container, '--openastro-font-button', cfg.typography.button + 'px');
     setSuiteVariable(container, '--openastro-font-meta', cfg.typography.meta + 'px');
+    setSuiteVariable(container, '--openastro-ephemeris-table-bg', cfg.ephemerisStyle.tableBgColor);
+    setSuiteVariable(container, '--openastro-ephemeris-table-text', cfg.ephemerisStyle.tableTextColor);
+    setSuiteVariable(container, '--openastro-ephemeris-table-border', cfg.ephemerisStyle.tableBorderColor);
+    setSuiteVariable(container, '--openastro-ephemeris-header-bg', cfg.ephemerisStyle.headerBgColor);
+    setSuiteVariable(container, '--openastro-ephemeris-header-text', cfg.ephemerisStyle.headerTextColor);
+    setSuiteVariable(container, '--openastro-ephemeris-badge-bg', cfg.ephemerisStyle.badgeBgColor);
+    setSuiteVariable(container, '--openastro-ephemeris-badge-text', cfg.ephemerisStyle.badgeTextColor);
+    setSuiteVariable(container, '--openastro-ephemeris-today-bg', cfg.ephemerisStyle.todayBgColor);
+    setSuiteVariable(container, '--openastro-ephemeris-today-accent', cfg.ephemerisStyle.todayAccentColor);
+    setSuiteVariable(container, '--openastro-ephemeris-retrograde', cfg.ephemerisStyle.retrogradeColor);
+    setSuiteVariable(container, '--openastro-ephemeris-ingress', cfg.ephemerisStyle.ingressColor);
+    setSuiteVariable(container, '--openastro-ephemeris-station', cfg.ephemerisStyle.stationColor);
     if (cfg.style.showBorder === false) {
       container.classList.add('astrology-suite-no-border');
       container.classList.add('openastro-no-border');
@@ -721,19 +1472,29 @@
       return;
     }
 
+    if (isEphemerisMode(mode)) {
+      mountEphemeris(container, cfg);
+      return;
+    }
+
     var form = create('form', { class: 'openastro-form' });
-    var formHeader = create('div', { class: 'openastro-form-header' });
-    var historyWrap = create('div', { class: 'openastro-load-recent-wrap' });
-    var historyPanel = create('div', { class: 'openastro-load-recent-panel' });
-    var historyId = 'openastro-history-select-' + Math.random().toString(36).slice(2, 10);
-    var historyLabel = create('label', { class: 'openastro-history-label openastro-load-recent-label', for: historyId }, 'Past inputs');
-    var historySelect = create('select', { id: historyId, class: 'openastro-history-select openastro-load-recent-select', 'aria-label': 'Load recent past inputs' });
-    var historyDefaultOption = create('option', { value: '' }, 'Past inputs...');
-    historySelect.appendChild(historyDefaultOption);
-    historyPanel.appendChild(historyLabel);
-    historyPanel.appendChild(historySelect);
-    historyWrap.appendChild(historyPanel);
-    formHeader.appendChild(historyWrap);
+    var historySelect = null;
+    var showHistory = cfg.style.showHistory !== false;
+    if (showHistory) {
+      var formHeader = create('div', { class: 'openastro-form-header' });
+      var historyWrap = create('div', { class: 'openastro-load-recent-wrap' });
+      var historyPanel = create('div', { class: 'openastro-load-recent-panel' });
+      var historyId = 'openastro-history-select-' + Math.random().toString(36).slice(2, 10);
+      var historyLabel = create('label', { class: 'openastro-history-label openastro-load-recent-label', for: historyId }, 'Past inputs');
+      historySelect = create('select', { id: historyId, class: 'openastro-history-select openastro-load-recent-select', 'aria-label': 'Load recent past inputs' });
+      var historyDefaultOption = create('option', { value: '' }, 'Past inputs...');
+      historySelect.appendChild(historyDefaultOption);
+      historyPanel.appendChild(historyLabel);
+      historyPanel.appendChild(historySelect);
+      historyWrap.appendChild(historyPanel);
+      formHeader.appendChild(historyWrap);
+      form.appendChild(formHeader);
+    }
     var name = create('input', { type: 'text', class: 'openastro-input', placeholder: 'Name (optional)' });
     var date = create('input', { type: 'date', class: 'openastro-input' });
     var time = create('input', { type: 'time', step: '60', class: 'openastro-input' });
@@ -764,7 +1525,6 @@
     var status = create('p', { class: 'openastro-status' }, '');
     var output = create('div', { class: 'openastro-output' });
 
-    form.appendChild(formHeader);
     form.appendChild(name);
     form.appendChild(date);
     form.appendChild(time);
@@ -786,7 +1546,7 @@
     var citySuggestions = [];
     var activeCityIndex = -1;
     var selectedCity = null;
-    var historyEntries = getHistory();
+    var historyEntries = showHistory ? getHistory() : [];
 
     function setCityExpanded(expanded) {
       var isExpanded = expanded && citySuggestions.length;
@@ -881,6 +1641,9 @@
     }
 
     function refreshHistorySelect() {
+      if (!historySelect) {
+        return;
+      }
       historySelect.innerHTML = '';
       historySelect.appendChild(create('option', { value: '' }, 'Past inputs...'));
       historyEntries.forEach(function (entry, idx) {
@@ -913,13 +1676,23 @@
     }
 
     refreshHistorySelect();
-    historySelect.addEventListener('change', function () {
-      var idx = Number(historySelect.value);
-      if (!historySelect.value || Number.isNaN(idx)) {
+    if (historySelect) {
+      historySelect.addEventListener('change', function () {
+        var idx = Number(historySelect.value);
+        if (!historySelect.value || Number.isNaN(idx)) {
+          return;
+        }
+        applyHistoryEntry(historyEntries[idx]);
+      });
+    }
+
+    function saveHistoryEntry(includeMinorValue, payload, cityItem) {
+      if (!showHistory) {
         return;
       }
-      applyHistoryEntry(historyEntries[idx]);
-    });
+      historyEntries = upsertHistory(makeHistoryEntry(mode, payload, cityItem, includeMinorValue));
+      refreshHistorySelect();
+    }
 
     city.addEventListener('input', function () {
       var parsedSearch = parseCitySearchInput(city.value);
@@ -1045,8 +1818,7 @@
 
             output.innerHTML = simpleSignHtml(result.body, includeInterpretation);
             status.textContent = 'Done.';
-            historyEntries = upsertHistory(makeHistoryEntry(mode, payload, selectedCity, false));
-            refreshHistorySelect();
+            saveHistoryEntry(false, payload, selectedCity);
           })
           .catch(function () {
             status.textContent = 'Unexpected error while generating data.';
@@ -1060,47 +1832,95 @@
 
       payload.include_minor_aspects = includeMinor.checked;
 
-      Promise.all([
-        api('/natal/calculate', {
+      function postNatalCalculate() {
+        return api('/natal/calculate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        }),
-        api('/natal/chart-svg', {
+        });
+      }
+
+      function postChartSvg() {
+        return api('/natal/chart-svg', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        })
-      ])
+        });
+      }
+
+      function renderGeneration(natalBody, svg, message) {
+        var detail = {
+          request: payload,
+          response: natalBody || null,
+          chartSvg: svg || null
+        };
+
+        window.dispatchEvent(new CustomEvent('openastro:natal:generated', { detail: detail }));
+
+        if (mode === 'chart-only') {
+          output.innerHTML = chartSectionHtml(svg, cfg.report);
+        } else if (mode === 'report-only') {
+          output.innerHTML = reportHtml(natalBody, '', mode, cfg.report);
+        } else {
+          output.innerHTML = reportHtml(natalBody, svg, mode, cfg.report);
+        }
+
+        status.textContent = message || 'Done.';
+        saveHistoryEntry(includeMinor.checked, payload, selectedCity);
+      }
+
+      if (mode === 'chart-only') {
+        postChartSvg()
+          .then(function (chart) {
+            if (!chart.ok || !chart.body || !chart.body.svg) {
+              status.textContent = (chart.body && chart.body.message) || 'Could not generate natal chart.';
+              return;
+            }
+
+            renderGeneration(null, chart.body.svg, 'Done.');
+          })
+          .catch(function () {
+            status.textContent = 'Unexpected error while generating data.';
+          })
+          .finally(function () {
+            submit.disabled = false;
+          });
+
+        return;
+      }
+
+      if (mode === 'report-only') {
+        postNatalCalculate()
+          .then(function (natal) {
+            if (!natal.ok || !natal.body) {
+              status.textContent = (natal.body && natal.body.message) || 'Could not generate natal data.';
+              return;
+            }
+
+            renderGeneration(natal.body, '', 'Done.');
+          })
+          .catch(function () {
+            status.textContent = 'Unexpected error while generating data.';
+          })
+          .finally(function () {
+            submit.disabled = false;
+          });
+
+        return;
+      }
+
+      Promise.all([postNatalCalculate(), postChartSvg()])
         .then(function (result) {
           var natal = result[0];
           var chart = result[1];
 
           if (!natal.ok || !natal.body) {
-            status.textContent = 'Could not generate natal data.';
+            status.textContent = (natal.body && natal.body.message) || 'Could not generate natal data.';
             return;
           }
 
           var svg = chart.ok && chart.body && chart.body.svg ? chart.body.svg : '';
-          var detail = {
-            request: payload,
-            response: natal.body,
-            chartSvg: svg || null
-          };
-
-          window.dispatchEvent(new CustomEvent('openastro:natal:generated', { detail: detail }));
-
-          if (mode === 'chart-only') {
-            output.innerHTML = chartSectionHtml(svg, cfg.report);
-          } else if (mode === 'report-only') {
-            output.innerHTML = reportHtml(natal.body, '', mode, cfg.report);
-          } else {
-            output.innerHTML = reportHtml(natal.body, svg, mode, cfg.report);
-          }
-
-          status.textContent = 'Done.';
-          historyEntries = upsertHistory(makeHistoryEntry(mode, payload, selectedCity, includeMinor.checked));
-          refreshHistorySelect();
+          renderGeneration(natal.body, svg, svg ? 'Done.' : 'Done. Chart unavailable.');
         })
         .catch(function () {
           status.textContent = 'Unexpected error while generating data.';

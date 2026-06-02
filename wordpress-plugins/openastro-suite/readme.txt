@@ -4,11 +4,11 @@ Tags: astrology, natal chart, horoscope, gutenberg, blocks, shortcodes
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 0.2.8
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Add interactive astrology blocks with natal charts, reports, and simple sign widgets.
+Add interactive astrology blocks with natal charts, reports, simple sign widgets, and monthly ephemeris tables.
 
 == Description ==
 
@@ -19,8 +19,10 @@ Astrology Suite for FreeAstroAPI helps you publish astrology experiences that fe
 * Capture birth details with a built-in form (city autocomplete included).
 * Render natal chart, natal report, or both.
 * Offer simple sign widgets for Sun, Moon, Rising, and Midheaven.
+* Publish monthly ephemeris tables with selectable bodies, tropical/sidereal mode, optional local points, and CSV download.
 * Choose chart SVG/PNG themes from settings, customize each theme's chart request body, or paste a custom chart_config JSON object.
-* Customize styling and typography from plugin settings.
+* Allow public visitor calculations, or restrict calculations to logged-in editors from the API settings tab.
+* Customize styling, ephemeris table colors, plugin background transparency, Past inputs visibility, and typography from plugin settings.
 * Reuse recent requests with a "Past inputs" dropdown (stored in browser local storage).
 
 Included blocks:
@@ -32,6 +34,7 @@ Included blocks:
 * `astrology-suite/simple-sign-moon`
 * `astrology-suite/simple-sign-rising`
 * `astrology-suite/simple-sign-midheaven`
+* `astrology-suite/ephemeris`
 
 Included shortcodes:
 
@@ -43,6 +46,7 @@ Included shortcodes:
 * `[astrology_suite_simple_sign_moon include_interpretation="false"]`
 * `[astrology_suite_simple_sign_rising include_interpretation="true" interpretation_style="poetic"]`
 * `[astrology_suite_simple_sign_midheaven]`
+* `[astrology_suite_ephemeris]`
 
 == External services ==
 
@@ -51,13 +55,14 @@ Astrology Suite for FreeAstroAPI connects to FreeAstroAPI (`https://www.freeastr
 What is sent and when:
 
 * When someone types at least two characters into the city field, the plugin sends the typed city query and optional country filter to FreeAstroAPI over HTTPS so matching cities and timezones can be returned.
-* When a logged-in user who can edit posts submits a natal chart, report, or simple-sign form, the plugin sends the submitted birth data and calculation options to FreeAstroAPI over HTTPS. This may include the optional name field, birth date, birth time, city name, latitude, longitude, timezone, interpretation settings, enabled extra bodies, the requested calculation mode, and whether minor aspects were requested.
-* For protected calculation requests, the plugin also sends the site's configured FreeAstroAPI key in the server-to-server request header so FreeAstroAPI can authenticate the request.
+* When a visitor submits a natal chart, report, simple-sign, or ephemeris form while public calculations are enabled, or when an authenticated editor submits while public calculations are disabled, the plugin sends the submitted astrology data and calculation options to FreeAstroAPI over HTTPS. This may include the optional name field, birth date, birth time, city name, latitude, longitude, timezone, interpretation settings, enabled extra bodies, selected ephemeris month/year, selected ephemeris bodies, zodiac type, the requested calculation mode, and whether minor aspects were requested.
+* Calculation requests also include the site's configured FreeAstroAPI key in the server-to-server request header so FreeAstroAPI can authenticate the request. The API key is not sent to the visitor's browser.
 * The plugin does not store visitor birth data in WordPress by default. The optional “Past inputs” feature stores recent successful requests only in the visitor's local browser storage.
 
 FreeAstroAPI Terms of Service: https://www.freeastroapi.com/terms
 FreeAstroAPI Privacy Policy: https://www.freeastroapi.com/privacy
 FreeAstroAPI Chart Designer: https://www.freeastroapi.com/dashboard/chart-designer
+FreeAstroAPI Ephemeris Docs: https://www.freeastroapi.com/docs/western/ephemeris
 
 == Installation ==
 
@@ -75,7 +80,7 @@ Yes. Add your key in **Settings > Astrology Suite**.
 
 = Who can submit calculation requests? =
 
-For security, natal chart, report, and simple-sign calculations are limited to logged-in users who can edit posts on the site. City autocomplete remains public.
+By default, public visitors can submit astrology calculation forms. Site admins can disable public calculations in **Settings > Astrology Suite > API** to restrict natal chart, report, simple-sign, and ephemeris calculations to logged-in users who can edit posts. City autocomplete remains public.
 
 = Is user birth data stored by default? =
 
@@ -92,9 +97,24 @@ Yes. Use plugin settings for typography/colors and target documented CSS classes
 3. Frontend aspect dynamics table rendered below the report.
 4. API settings screen with the FreeAstroAPI key field and service disclosure.
 5. Report settings screen for report length, tables, angles, and chart print controls.
-6. Style settings screen for colors, border radius, typography, labels, and form controls.
+6. Style settings screen for colors, background transparency, border radius, typography, labels, and form controls.
+7. Frontend ephemeris table with month navigation, body filters, and a styled monthly grid.
 
 == Changelog ==
+
+= 0.3.0 =
+* Added `astrology-suite/ephemeris` block and `[astrology_suite_ephemeris]` shortcode.
+* Added `/wp-json/astrology-suite/v1/western/ephemeris` REST proxy for FreeAstroAPI monthly table grids.
+* Added ephemeris frontend with month navigation, body selectors, optional city-based local points, tropical/sidereal mode, CSV download, and plugin-matched table styling.
+* Added Ephemeris Style settings for table grid, header, badge, today row, retrograde, ingress, and station colors.
+
+= 0.2.9 =
+* Added an API setting to allow public visitor calculations while keeping the FreeAstroAPI key server-side.
+* Changed the API key field to "leave blank to keep current key" so the saved key is not echoed into admin page HTML.
+* Split settings saves by tab to avoid hidden-field key exposure and accidental cross-tab option persistence.
+* Optimized frontend requests so chart-only calls only chart SVG, report-only calls only natal calculation, and chart-report calls both.
+* Sanitized upstream SVG chart responses before returning them to the frontend.
+* Added explicit "Customize this body" and "Reset to preset" controls for per-theme chart API bodies.
 
 = 0.2.8 =
 * Added per-theme FreeAstroAPI chart request body editors for chart themes.
@@ -130,7 +150,7 @@ Yes. Use plugin settings for typography/colors and target documented CSS classes
 = 0.2.1 =
 * Documented the required FreeAstroAPI external service usage, data sent, and terms/privacy links.
 * Moved upstream requests to the documented FreeAstroAPI API domain.
-* Restricted API-key-backed calculation routes to authenticated users who can edit posts.
+* Added authenticated-user protection for API-key-backed calculation routes.
 * Added privacy-policy helper text for site owners.
 
 = 0.2.0 =
@@ -139,6 +159,12 @@ Yes. Use plugin settings for typography/colors and target documented CSS classes
 * Added and refined simple sign widgets.
 
 == Upgrade Notice ==
+
+= 0.3.0 =
+Adds the ephemeris block/shortcode, monthly table REST proxy, and Ephemeris Style controls.
+
+= 0.2.9 =
+Adds public calculation controls, safer API key handling, sanitized chart SVG responses, and mode-specific API calls.
 
 = 0.2.8 =
 Adds per-theme SVG/PNG chart request body editors and applies those bodies to preview PNGs and frontend chart SVGs.
@@ -159,4 +185,4 @@ Fixes natal chart SVG rendering by using the current FreeAstroAPI chart endpoint
 Naming and text-domain update for WordPress.org review.
 
 = 0.2.1 =
-Security and documentation update for FreeAstroAPI service disclosure and protected calculation routes.
+Security and documentation update for FreeAstroAPI service disclosure and API-key-backed calculation routes.
