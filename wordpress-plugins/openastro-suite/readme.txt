@@ -4,7 +4,7 @@ Tags: astrology, natal chart, horoscope, gutenberg, blocks, shortcodes
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -107,6 +107,12 @@ Yes. Use plugin settings for typography/colors and target documented CSS classes
 
 == Changelog ==
 
+= 0.3.1 =
+* Added configurable planet aspect links that open FreeAstroAPI aspect interpretation blocks in a modal.
+* Added optional aspect glyph display and thematic interpretation settings.
+* Improved astrology glyph mappings for ASC, MC, Lilith, and aspect table rows.
+* Improved report headings so missing house data no longer displays as "House -".
+
 = 0.3.0 =
 * Added `astrology-suite/ephemeris` block and `[astrology_suite_ephemeris]` shortcode.
 * Added `/wp-json/astrology-suite/v1/western/ephemeris` REST proxy for FreeAstroAPI monthly table grids.
@@ -164,6 +170,9 @@ Yes. Use plugin settings for typography/colors and target documented CSS classes
 * Added and refined simple sign widgets.
 
 == Upgrade Notice ==
+
+= 0.3.1 =
+Adds aspect interpretation modals, optional aspect glyphs, thematic interpretation groups, and cleaner report headings.
 
 = 0.3.0 =
 Adds the ephemeris block/shortcode, monthly table REST proxy, and Ephemeris Style controls.
