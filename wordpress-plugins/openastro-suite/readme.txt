@@ -20,9 +20,13 @@ Astrology Suite for FreeAstroAPI helps you publish astrology experiences that fe
 * Render natal chart, natal report, or both.
 * Offer simple sign widgets for Sun, Moon, Rising, and Midheaven.
 * Publish monthly ephemeris tables with selectable bodies, tropical/sidereal mode, optional local points, and CSV download.
+* Use explicit 24-hour birth-time controls (`00`-`23`) instead of browser-local AM/PM labels.
+* Let visitors mark birth time as unknown on natal chart/report forms, sending `time_known: false` to FreeAstroAPI.
+* Localize frontend UI labels and validation text while leaving FreeAstroAPI interpretation blocks in the language returned by the API.
 * Choose chart SVG/PNG themes from settings, customize each theme's chart request body, or paste a custom chart_config JSON object.
 * Allow public visitor calculations, or restrict calculations to logged-in editors from the API settings tab.
 * Customize styling, ephemeris table colors, plugin background transparency, Past inputs visibility, and typography from plugin settings.
+* Add optional birth context, thematic interpretation groups, and clickable planet aspect links that open matching FreeAstroAPI interpretation blocks without using the psychological report flow.
 * Reuse recent requests with a "Past inputs" dropdown (stored in browser local storage).
 
 Included blocks:
@@ -39,6 +43,7 @@ Included blocks:
 Included shortcodes:
 
 * `[astrology_suite mode="chart-report"]`
+* `[astrology_suite mode="chart-report" language="vi"]`
 * `[astrology_suite_chart_only]`
 * `[astrology_suite_report_only]`
 * `[astrology_suite_chart_report]`

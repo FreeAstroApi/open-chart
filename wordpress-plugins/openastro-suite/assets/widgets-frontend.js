@@ -29,8 +29,16 @@
     north_node: 'k',
     true_node: 'k',
     mean_node: 'k',
-    lilith: 'L',
-    chiron: 'D'
+    lilith: '⚸',
+    true_lilith: '⚸',
+    chiron: 'D',
+    asc: '1',
+    ascendant: '1',
+    dsc: '2',
+    descendant: '2',
+    mc: '3',
+    midheaven: '3',
+    ic: '4'
   };
 
   var SIGN_GLYPHS = {
@@ -101,14 +109,356 @@
   var EPHEMERIS_DEFAULT_BODY_IDS = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'true_node', 'chiron'];
   var HISTORY_KEY = 'openastro_history_v1';
   var HISTORY_LIMIT = 20;
+  var TRANSLATIONS = {
+    vi: {
+      'Print': 'In',
+      'Natal Wheel': 'Ban do sao',
+      'Chart unavailable.': 'Khong co ban do sao.',
+      'Name (optional)': 'Ten (khong bat buoc)',
+      'Birth date': 'Ngay sinh',
+      'Birth hour (00-23)': 'Gio sinh (00-23)',
+      'Hour (00-23)': 'Gio (00-23)',
+      'Birth minute': 'Phut sinh',
+      'Minute': 'Phut',
+      "I don't know my birth time": 'Toi khong biet gio sinh',
+      'Time unknown': 'Khong ro gio sinh',
+      'City or city, country code': 'Thanh pho hoac thanh pho, ma quoc gia',
+      'City suggestions': 'Goi y thanh pho',
+      'Include minor aspects': 'Bao gom cac goc phu',
+      'Generate': 'Tao',
+      'Past inputs': 'Du lieu da dung',
+      'Past inputs...': 'Du lieu da dung...',
+      'Load recent past inputs': 'Tai du lieu gan day',
+      'Calculation Access Required': 'Can quyen tinh toan',
+      'Unknown city': 'Thanh pho khong ro',
+      'Unknown country': 'Quoc gia khong ro',
+      'Unknown': 'Khong ro',
+      'Selected {city}.': 'Da chon {city}.',
+      'Selected {city} - {timezone}.': 'Da chon {city} - {timezone}.',
+      '{count} match for "{query}". Use arrow keys or click a city.': '{count} ket qua cho "{query}". Dung phim mui ten hoac bam vao thanh pho.',
+      '{count} matches for "{query}". Use arrow keys or click a city.': '{count} ket qua cho "{query}". Dung phim mui ten hoac bam vao thanh pho.',
+      'Type at least 2 characters to search cities.': 'Nhap it nhat 2 ky tu de tim thanh pho.',
+      'Searching cities...': 'Dang tim thanh pho...',
+      'Could not load city suggestions.': 'Khong tai duoc goi y thanh pho.',
+      'No cities found. Try another query.': 'Khong tim thay thanh pho. Hay thu tu khoa khac.',
+      'Loaded saved input.': 'Da tai du lieu da luu.',
+      'Date, time, and a city from suggestions are required.': 'Vui long nhap ngay, gio va chon thanh pho tu danh sach goi y.',
+      'Date and a city from suggestions are required.': 'Vui long nhap ngay va chon thanh pho tu danh sach goi y.',
+      'Birth time is required, or choose unknown time.': 'Vui long nhap gio sinh hoac chon khong ro gio sinh.',
+      'Generating...': 'Dang tao...',
+      'Done.': 'Hoan tat.',
+      'Done. Chart unavailable.': 'Hoan tat. Khong co ban do sao.',
+      'Could not generate simple sign.': 'Khong tao duoc cung don gian.',
+      'Could not generate natal chart.': 'Khong tao duoc ban do sao.',
+      'Could not generate natal data.': 'Khong tao duoc du lieu la so.',
+      'Unexpected error while generating data.': 'Co loi bat ngo khi tao du lieu.',
+      'Natal Report': 'Bao cao la so',
+      'Birth Context': 'Thong tin sinh',
+      'Date': 'Ngay',
+      'Time': 'Gio',
+      'Place': 'Noi sinh',
+      'Timezone': 'Mui gio',
+      'Coordinates': 'Toa do',
+      '1st House / ASC': 'Nha 1 / ASC',
+      '10th House Cusp / MC': 'Dinh nha 10 / MC',
+      'Sign:': 'Cung:',
+      'House:': 'Nha:',
+      'Ascendant interpretation was not returned for this chart.': 'API khong tra ve dien giai Ascendant cho la so nay.',
+      'Midheaven interpretation was not returned for this chart.': 'API khong tra ve dien giai Midheaven cho la so nay.',
+      'Planet Interpretations': 'Dien giai hanh tinh',
+      'Interpretation not available for this planet.': 'Chua co dien giai cho hanh tinh nay.',
+      'All Aspect Dynamics': 'Tat ca dong luc goc chieu',
+      'P1': 'P1',
+      'Aspect': 'Goc',
+      'P2': 'P2',
+      'Orb': 'Orb',
+      'Major': 'Chinh',
+      'Yes': 'Co',
+      'No': 'Khong',
+      '{count} aspects detected.': 'Phat hien {count} goc chieu.',
+      '{point} Sign': 'Cung {point}',
+      'Interpretation': 'Dien giai',
+      'Interpretation was not returned for this point.': 'API khong tra ve dien giai cho diem nay.',
+      'aspect_type_conjunction': 'dong hanh',
+      'aspect_type_opposition': 'doi dinh',
+      'aspect_type_trine': 'tam hop',
+      'aspect_type_square': 'vuong goc',
+      'aspect_type_sextile': 'luc hop',
+      'aspect_type_quincunx': 'quincunx'
+    },
+    fr: {
+      'Print': 'Imprimer',
+      'Natal Wheel': 'Theme natal',
+      'Chart unavailable.': 'Theme indisponible.',
+      'Name (optional)': 'Nom (facultatif)',
+      'Birth date': 'Date de naissance',
+      'Birth hour (00-23)': 'Heure de naissance (00-23)',
+      'Hour (00-23)': 'Heure (00-23)',
+      'Birth minute': 'Minute de naissance',
+      'Minute': 'Minute',
+      "I don't know my birth time": 'Je ne connais pas mon heure de naissance',
+      'Time unknown': 'Heure inconnue',
+      'City or city, country code': 'Ville ou ville, code pays',
+      'City suggestions': 'Suggestions de villes',
+      'Include minor aspects': 'Inclure les aspects mineurs',
+      'Generate': 'Generer',
+      'Past inputs': 'Saisies recentes',
+      'Past inputs...': 'Saisies recentes...',
+      'Load recent past inputs': 'Charger les saisies recentes',
+      'Calculation Access Required': 'Acces au calcul requis',
+      'Selected {city}.': '{city} selectionnee.',
+      'Selected {city} - {timezone}.': '{city} selectionnee - {timezone}.',
+      'Type at least 2 characters to search cities.': 'Saisissez au moins 2 caracteres pour chercher une ville.',
+      'Searching cities...': 'Recherche des villes...',
+      'Could not load city suggestions.': 'Impossible de charger les suggestions de villes.',
+      'No cities found. Try another query.': 'Aucune ville trouvee. Essayez une autre recherche.',
+      'Loaded saved input.': 'Saisie enregistree chargee.',
+      'Date, time, and a city from suggestions are required.': 'La date, l heure et une ville suggeree sont requises.',
+      'Date and a city from suggestions are required.': 'La date et une ville suggeree sont requises.',
+      'Birth time is required, or choose unknown time.': 'L heure de naissance est requise, ou choisissez heure inconnue.',
+      'Generating...': 'Generation...',
+      'Done.': 'Termine.',
+      'Done. Chart unavailable.': 'Termine. Theme indisponible.',
+      'Natal Report': 'Rapport natal',
+      'Birth Context': 'Contexte de naissance',
+      'Date': 'Date',
+      'Time': 'Heure',
+      'Place': 'Lieu',
+      'Timezone': 'Fuseau horaire',
+      'Coordinates': 'Coordonnees',
+      'Planet Interpretations': 'Interpretations des planetes',
+      'All Aspect Dynamics': 'Dynamiques des aspects',
+      'Major': 'Majeur',
+      'Yes': 'Oui',
+      'No': 'Non',
+      'Interpretation': 'Interpretation',
+      'aspect_type_conjunction': 'conjonction',
+      'aspect_type_opposition': 'opposition',
+      'aspect_type_trine': 'trigone',
+      'aspect_type_square': 'carre',
+      'aspect_type_sextile': 'sextile',
+      'aspect_type_quincunx': 'quinconce'
+    },
+    es: {
+      'Print': 'Imprimir',
+      'Natal Wheel': 'Carta natal',
+      'Chart unavailable.': 'Carta no disponible.',
+      'Name (optional)': 'Nombre (opcional)',
+      'Birth date': 'Fecha de nacimiento',
+      'Birth hour (00-23)': 'Hora de nacimiento (00-23)',
+      'Hour (00-23)': 'Hora (00-23)',
+      'Birth minute': 'Minuto de nacimiento',
+      'Minute': 'Minuto',
+      "I don't know my birth time": 'No conozco mi hora de nacimiento',
+      'Time unknown': 'Hora desconocida',
+      'City or city, country code': 'Ciudad o ciudad, codigo de pais',
+      'City suggestions': 'Sugerencias de ciudad',
+      'Include minor aspects': 'Incluir aspectos menores',
+      'Generate': 'Generar',
+      'Past inputs': 'Datos recientes',
+      'Past inputs...': 'Datos recientes...',
+      'Load recent past inputs': 'Cargar datos recientes',
+      'Calculation Access Required': 'Acceso de calculo requerido',
+      'Selected {city}.': '{city} seleccionada.',
+      'Selected {city} - {timezone}.': '{city} seleccionada - {timezone}.',
+      'Type at least 2 characters to search cities.': 'Escribe al menos 2 caracteres para buscar ciudades.',
+      'Searching cities...': 'Buscando ciudades...',
+      'Could not load city suggestions.': 'No se pudieron cargar sugerencias de ciudad.',
+      'No cities found. Try another query.': 'No se encontraron ciudades. Prueba otra busqueda.',
+      'Loaded saved input.': 'Datos guardados cargados.',
+      'Date, time, and a city from suggestions are required.': 'Se requiere fecha, hora y una ciudad sugerida.',
+      'Date and a city from suggestions are required.': 'Se requiere fecha y una ciudad sugerida.',
+      'Birth time is required, or choose unknown time.': 'Se requiere hora de nacimiento, o elige hora desconocida.',
+      'Generating...': 'Generando...',
+      'Done.': 'Listo.',
+      'Done. Chart unavailable.': 'Listo. Carta no disponible.',
+      'Natal Report': 'Informe natal',
+      'Birth Context': 'Contexto de nacimiento',
+      'Date': 'Fecha',
+      'Time': 'Hora',
+      'Place': 'Lugar',
+      'Timezone': 'Zona horaria',
+      'Coordinates': 'Coordenadas',
+      'Planet Interpretations': 'Interpretaciones planetarias',
+      'All Aspect Dynamics': 'Dinamicas de aspectos',
+      'Major': 'Mayor',
+      'Yes': 'Si',
+      'No': 'No',
+      'Interpretation': 'Interpretacion',
+      'aspect_type_conjunction': 'conjuncion',
+      'aspect_type_opposition': 'oposicion',
+      'aspect_type_trine': 'trigono',
+      'aspect_type_square': 'cuadratura',
+      'aspect_type_sextile': 'sextil',
+      'aspect_type_quincunx': 'quincuncio'
+    },
+    de: {
+      'Print': 'Drucken',
+      'Natal Wheel': 'Radix',
+      'Chart unavailable.': 'Horoskop nicht verfuegbar.',
+      'Name (optional)': 'Name (optional)',
+      'Birth date': 'Geburtsdatum',
+      'Birth hour (00-23)': 'Geburtsstunde (00-23)',
+      'Hour (00-23)': 'Stunde (00-23)',
+      'Birth minute': 'Geburtsminute',
+      'Minute': 'Minute',
+      "I don't know my birth time": 'Ich kenne meine Geburtszeit nicht',
+      'Time unknown': 'Geburtszeit unbekannt',
+      'City or city, country code': 'Stadt oder Stadt, Laendercode',
+      'City suggestions': 'Stadtvorschlaege',
+      'Include minor aspects': 'Nebenaspekte einbeziehen',
+      'Generate': 'Erstellen',
+      'Past inputs': 'Fruehere Eingaben',
+      'Past inputs...': 'Fruehere Eingaben...',
+      'Load recent past inputs': 'Fruehere Eingaben laden',
+      'Calculation Access Required': 'Berechnungszugriff erforderlich',
+      'Selected {city}.': '{city} ausgewaehlt.',
+      'Selected {city} - {timezone}.': '{city} ausgewaehlt - {timezone}.',
+      'Type at least 2 characters to search cities.': 'Geben Sie mindestens 2 Zeichen ein, um Staedte zu suchen.',
+      'Searching cities...': 'Staedte werden gesucht...',
+      'Could not load city suggestions.': 'Stadtvorschlaege konnten nicht geladen werden.',
+      'No cities found. Try another query.': 'Keine Staedte gefunden. Versuchen Sie eine andere Suche.',
+      'Loaded saved input.': 'Gespeicherte Eingabe geladen.',
+      'Date, time, and a city from suggestions are required.': 'Datum, Uhrzeit und eine Stadt aus den Vorschlaegen sind erforderlich.',
+      'Date and a city from suggestions are required.': 'Datum und eine Stadt aus den Vorschlaegen sind erforderlich.',
+      'Birth time is required, or choose unknown time.': 'Geburtszeit ist erforderlich, oder waehlen Sie unbekannte Zeit.',
+      'Generating...': 'Wird erstellt...',
+      'Done.': 'Fertig.',
+      'Done. Chart unavailable.': 'Fertig. Horoskop nicht verfuegbar.',
+      'Natal Report': 'Geburtsbericht',
+      'Birth Context': 'Geburtskontext',
+      'Date': 'Datum',
+      'Time': 'Uhrzeit',
+      'Place': 'Ort',
+      'Timezone': 'Zeitzone',
+      'Coordinates': 'Koordinaten',
+      'Planet Interpretations': 'Planeten-Deutungen',
+      'All Aspect Dynamics': 'Alle Aspektdynamiken',
+      'Major': 'Hauptaspekt',
+      'Yes': 'Ja',
+      'No': 'Nein',
+      'Interpretation': 'Deutung',
+      'aspect_type_conjunction': 'Konjunktion',
+      'aspect_type_opposition': 'Opposition',
+      'aspect_type_trine': 'Trigon',
+      'aspect_type_square': 'Quadrat',
+      'aspect_type_sextile': 'Sextil',
+      'aspect_type_quincunx': 'Quinkunx'
+    },
+    pt: {
+      'Print': 'Imprimir',
+      'Natal Wheel': 'Mapa natal',
+      'Chart unavailable.': 'Mapa indisponivel.',
+      'Name (optional)': 'Nome (opcional)',
+      'Birth date': 'Data de nascimento',
+      'Birth hour (00-23)': 'Hora de nascimento (00-23)',
+      'Hour (00-23)': 'Hora (00-23)',
+      'Birth minute': 'Minuto de nascimento',
+      'Minute': 'Minuto',
+      "I don't know my birth time": 'Nao sei minha hora de nascimento',
+      'Time unknown': 'Hora desconhecida',
+      'City or city, country code': 'Cidade ou cidade, codigo do pais',
+      'City suggestions': 'Sugestoes de cidade',
+      'Include minor aspects': 'Incluir aspectos menores',
+      'Generate': 'Gerar',
+      'Past inputs': 'Entradas recentes',
+      'Past inputs...': 'Entradas recentes...',
+      'Load recent past inputs': 'Carregar entradas recentes',
+      'Calculation Access Required': 'Acesso de calculo necessario',
+      'Selected {city}.': '{city} selecionada.',
+      'Selected {city} - {timezone}.': '{city} selecionada - {timezone}.',
+      'Type at least 2 characters to search cities.': 'Digite pelo menos 2 caracteres para buscar cidades.',
+      'Searching cities...': 'Buscando cidades...',
+      'Could not load city suggestions.': 'Nao foi possivel carregar sugestoes de cidade.',
+      'No cities found. Try another query.': 'Nenhuma cidade encontrada. Tente outra busca.',
+      'Loaded saved input.': 'Entrada salva carregada.',
+      'Date, time, and a city from suggestions are required.': 'Data, hora e uma cidade sugerida sao obrigatorias.',
+      'Date and a city from suggestions are required.': 'Data e uma cidade sugerida sao obrigatorias.',
+      'Birth time is required, or choose unknown time.': 'A hora de nascimento e obrigatoria, ou escolha hora desconhecida.',
+      'Generating...': 'Gerando...',
+      'Done.': 'Concluido.',
+      'Done. Chart unavailable.': 'Concluido. Mapa indisponivel.',
+      'Natal Report': 'Relatorio natal',
+      'Birth Context': 'Contexto de nascimento',
+      'Date': 'Data',
+      'Time': 'Hora',
+      'Place': 'Local',
+      'Timezone': 'Fuso horario',
+      'Coordinates': 'Coordenadas',
+      'Planet Interpretations': 'Interpretacoes planetarias',
+      'All Aspect Dynamics': 'Dinamicas dos aspectos',
+      'Major': 'Maior',
+      'Yes': 'Sim',
+      'No': 'Nao',
+      'Interpretation': 'Interpretacao',
+      'aspect_type_conjunction': 'conjuncao',
+      'aspect_type_opposition': 'oposicao',
+      'aspect_type_trine': 'trigono',
+      'aspect_type_square': 'quadratura',
+      'aspect_type_sextile': 'sextil',
+      'aspect_type_quincunx': 'quincuncio'
+    }
+  };
+
+  function normalizeLanguageCode(value) {
+    var lang = String(value || '').toLowerCase().replace('_', '-');
+    if (!lang || lang === 'auto') {
+      return 'auto';
+    }
+    lang = lang.split('-')[0];
+    return (TRANSLATIONS[lang] || lang === 'en') ? lang : '';
+  }
+
+  function detectBrowserLanguage() {
+    var htmlLang = document.documentElement ? document.documentElement.getAttribute('lang') : '';
+    var detected = normalizeLanguageCode(htmlLang);
+    if (detected && detected !== 'auto') {
+      return detected;
+    }
+    if (navigator.languages && navigator.languages.length) {
+      for (var i = 0; i < navigator.languages.length; i += 1) {
+        detected = normalizeLanguageCode(navigator.languages[i]);
+        if (detected && detected !== 'auto') {
+          return detected;
+        }
+      }
+    }
+    detected = normalizeLanguageCode(navigator.language || '');
+    return detected && detected !== 'auto' ? detected : 'en';
+  }
+
+  function resolveLanguage(value) {
+    var lang = normalizeLanguageCode(value);
+    if (!lang || lang === 'auto') {
+      return detectBrowserLanguage();
+    }
+    return lang;
+  }
+
+  function t(key, lang) {
+    var code = resolveLanguage(lang || 'en');
+    if (code !== 'en' && TRANSLATIONS[code] && Object.prototype.hasOwnProperty.call(TRANSLATIONS[code], key)) {
+      return TRANSLATIONS[code][key];
+    }
+    return key;
+  }
+
+  function fmt(key, vars, lang) {
+    var text = t(key, lang);
+    Object.keys(vars || {}).forEach(function (name) {
+      text = text.replace(new RegExp('\\{' + name + '\\}', 'g'), vars[name]);
+    });
+    return text;
+  }
 
   function getCfg() {
-    var cfg = window.AstrologySuiteBlocks || window.OpenAstroBlocks || { root: '/wp-json/astrology-suite/v1/', nonce: '', permissions: {}, report: {}, style: {}, ephemerisStyle: {}, typography: {} };
+    var cfg = window.AstrologySuiteBlocks || window.OpenAstroBlocks || { root: '/wp-json/astrology-suite/v1/', nonce: '', language: 'auto', permissions: {}, report: {}, style: {}, ephemerisStyle: {}, typography: {} };
     cfg.permissions = cfg.permissions || {};
     cfg.report = cfg.report || {};
     cfg.style = cfg.style || {};
     cfg.ephemerisStyle = cfg.ephemerisStyle || {};
     cfg.typography = cfg.typography || {};
+    cfg.language = cfg.language || 'auto';
     cfg.permissions.canCalculate = !!cfg.permissions.canCalculate;
     cfg.permissions.calculationMessage = cfg.permissions.calculationMessage || 'This astrology form is disabled for public visitors. Enable public calculations in Astrology Suite API settings, or log in with permission to edit posts.';
     cfg.report.detailLevel = cfg.report.detailLevel === 'concise' ? 'concise' : 'full';
@@ -116,6 +466,10 @@
     cfg.report.maxAspects = Number(cfg.report.maxAspects || 40);
     cfg.report.showTables = cfg.report.showTables !== false;
     cfg.report.showAngles = cfg.report.showAngles !== false;
+    cfg.report.showBirthContext = cfg.report.showBirthContext !== false;
+    cfg.report.showAspectLinks = cfg.report.showAspectLinks !== false && cfg.report.showPersonalizedNotes !== false;
+    cfg.report.showAspectGlyphs = cfg.report.showAspectGlyphs !== false;
+    cfg.report.showThematicInterpretation = !!cfg.report.showThematicInterpretation;
     cfg.report.showPrintButton = cfg.report.showPrintButton !== false;
     cfg.style.showBorder = cfg.style.showBorder !== false;
     cfg.style.backgroundColor = cfg.style.backgroundColor || '#ffffff';
@@ -135,6 +489,10 @@
     cfg.style.focusRingColor = cfg.style.focusRingColor || '#2563eb';
     cfg.style.astroFontSize = Number(cfg.style.astroFontSize || 20);
     cfg.style.astroFontColor = cfg.style.astroFontColor || '#111111';
+    cfg.style.modalBgColor = cfg.style.modalBgColor || '#ffffff';
+    cfg.style.modalTextColor = cfg.style.modalTextColor || '#111111';
+    cfg.style.modalBorderColor = cfg.style.modalBorderColor || '#111111';
+    cfg.style.modalAccentColor = cfg.style.modalAccentColor || '#d97706';
     cfg.style.showHistory = cfg.style.showHistory !== false;
     cfg.style.historyBgColor = cfg.style.historyBgColor || '#f9fafb';
     cfg.style.historyBorderColor = cfg.style.historyBorderColor || '#e5e7eb';
@@ -162,11 +520,11 @@
     return cfg;
   }
 
-  function chartSectionHtml(svg, reportCfg) {
+  function chartSectionHtml(svg, reportCfg, lang) {
     var printButton = reportCfg.showPrintButton
-      ? '<button type="button" class="' + expandClassNames('openastro-print-btn') + '" data-openastro-print-chart="1">Print</button>'
+      ? '<button type="button" class="' + expandClassNames('openastro-print-btn') + '" data-openastro-print-chart="1">' + esc(t('Print', lang)) + '</button>'
       : '';
-    return '<section class="' + expandClassNames('openastro-card openastro-chart-card') + '"><h3>Natal Wheel</h3>' + printButton + '<div class="' + expandClassNames('openastro-chart') + '">' + (svg || '<p>Chart unavailable.</p>') + '</div></section>';
+    return '<section class="' + expandClassNames('openastro-card openastro-chart-card') + '"><h3>' + esc(t('Natal Wheel', lang)) + '</h3>' + printButton + '<div class="' + expandClassNames('openastro-chart') + '">' + (svg || '<p>' + esc(t('Chart unavailable.', lang)) + '</p>') + '</div></section>';
   }
 
   function isSimpleSignMode(mode) {
@@ -192,21 +550,21 @@
     return point || 'Point';
   }
 
-  function simpleSignHtml(result, includeInterpretation) {
+  function simpleSignHtml(result, includeInterpretation, lang) {
     var point = prettyPoint(result.point || '');
-    var sign = result.sign || result.sign_id || 'Unknown';
+    var sign = result.sign || result.sign_id || t('Unknown', lang);
     var signGlyph = glyphForSign(sign);
     var degree = typeof result.degree === 'number' ? result.degree.toFixed(2) + '°' : '';
     var interp = result.interpretation && result.interpretation.body ? result.interpretation.body : '';
 
     var html = '<section class="' + expandClassNames('openastro-card openastro-simple-sign-card') + '">';
-    html += '<h3>' + esc(point) + ' Sign</h3>';
+    html += '<h3>' + esc(fmt('{point} Sign', { point: point }, lang)) + '</h3>';
     html += '<p class="' + expandClassNames('openastro-simple-sign-value') + '">' + glyphSpan(signGlyph) + esc(sign) + (degree ? ' · ' + esc(degree) : '') + '</p>';
 
     if (includeInterpretation) {
       html += '<div class="' + expandClassNames('openastro-simple-sign-interpretation') + '">';
-      html += '<h4>Interpretation</h4>';
-      html += '<p>' + esc(interp || 'Interpretation was not returned for this point.') + '</p>';
+      html += '<h4>' + esc(t('Interpretation', lang)) + '</h4>';
+      html += '<p>' + esc(interp || t('Interpretation was not returned for this point.', lang)) + '</p>';
       html += '</div>';
     }
 
@@ -294,6 +652,14 @@
     return '<span class="' + expandClassNames('openastro-astro-glyph') + '">' + esc(char) + '</span>';
   }
 
+  function bodyGlyphHtml(value) {
+    var glyph = glyphForBody(value);
+    if (!glyph) {
+      return '';
+    }
+    return glyphSpan(glyph);
+  }
+
   function api(path, options) {
     var cfg = getCfg();
     var headers = options.headers || {};
@@ -350,7 +716,52 @@
   }
 
   function toTimeValue(entry) {
+    if (entry && entry.time_known === false) {
+      return '';
+    }
     return pad2(entry.hour) + ':' + pad2(entry.minute);
+  }
+
+  function createTimeControls(lang) {
+    var wrap = create('div', { class: 'openastro-time-row' });
+    var hour = create('select', { class: 'openastro-input openastro-time-hour', 'aria-label': t('Birth hour (00-23)', lang) });
+    var minute = create('select', { class: 'openastro-input openastro-time-minute', 'aria-label': t('Birth minute', lang) });
+
+    hour.appendChild(create('option', { value: '' }, t('Hour (00-23)', lang)));
+    minute.appendChild(create('option', { value: '' }, t('Minute', lang)));
+
+    for (var h = 0; h <= 23; h += 1) {
+      hour.appendChild(create('option', { value: pad2(h) }, pad2(h)));
+    }
+
+    for (var m = 0; m <= 59; m += 1) {
+      minute.appendChild(create('option', { value: pad2(m) }, pad2(m)));
+    }
+
+    wrap.appendChild(hour);
+    wrap.appendChild(minute);
+
+    return {
+      wrap: wrap,
+      hour: hour,
+      minute: minute,
+      value: function () {
+        if (!hour.value || !minute.value) {
+          return '';
+        }
+        return hour.value + ':' + minute.value;
+      },
+      setValue: function (value) {
+        var parts = String(value || '').split(':');
+        hour.value = /^\d{1,2}$/.test(parts[0] || '') ? pad2(parts[0]) : '';
+        minute.value = /^\d{1,2}$/.test(parts[1] || '') ? pad2(parts[1]) : '';
+      },
+      setDisabled: function (disabled) {
+        hour.disabled = !!disabled;
+        minute.disabled = !!disabled;
+        wrap.classList.toggle('is-disabled', !!disabled);
+      }
+    };
   }
 
   function normalizeNum(v, fixed) {
@@ -358,19 +769,25 @@
     return num.toFixed(fixed || 4);
   }
 
+  function historyScalar(value) {
+    return value === null || typeof value === 'undefined' ? '' : String(value);
+  }
+
   function historyIdFromEntry(entry) {
     return [
-      String(entry.year || ''),
-      String(entry.month || ''),
-      String(entry.day || ''),
-      String(entry.hour || ''),
-      String(entry.minute || ''),
+      historyScalar(entry.year),
+      historyScalar(entry.month),
+      historyScalar(entry.day),
+      entry.time_known === false ? 'unknown' : 'known',
+      historyScalar(entry.hour),
+      historyScalar(entry.minute),
       normalizeNum(entry.lat, 4),
       normalizeNum(entry.lng, 4)
     ].join('|');
   }
 
   function makeHistoryEntry(mode, payload, selectedCity, includeMinor) {
+    var timeKnown = payload.time_known !== false;
     var country = selectedCity.country || selectedCity.country_name || selectedCity.country_code || '';
     var entry = {
       saved_at: new Date().toISOString(),
@@ -378,8 +795,9 @@
       year: Number(payload.year || 0),
       month: Number(payload.month || 0),
       day: Number(payload.day || 0),
-      hour: Number(payload.hour || 0),
-      minute: Number(payload.minute || 0),
+      time_known: timeKnown,
+      hour: timeKnown ? Number(payload.hour || 0) : null,
+      minute: timeKnown ? Number(payload.minute || 0) : null,
       city_name: selectedCity.name || payload.city || '',
       country: country,
       timezone: selectedCity.timezone || payload.tz_str || '',
@@ -405,9 +823,9 @@
     return deduped;
   }
 
-  function historyOptionLabel(entry) {
+  function historyOptionLabel(entry, lang) {
     var datePart = [pad2(entry.day), pad2(entry.month), String(entry.year)].join('/');
-    var timePart = [pad2(entry.hour), pad2(entry.minute)].join(':');
+    var timePart = entry.time_known === false ? t('Time unknown', lang) : [pad2(entry.hour), pad2(entry.minute)].join(':');
     var place = entry.city_name || 'Unknown city';
     var country = entry.country ? ' (' + entry.country + ')' : '';
     var person = String(entry.name || '').trim();
@@ -977,6 +1395,59 @@
     return out;
   }
 
+  function interpretationCategoryLabel(category) {
+    var labels = {
+      core_self: 'Core Self',
+      mind: 'Mind',
+      love_relating: 'Love and Relating',
+      work_path: 'Work and Path',
+      social_collective: 'Social and Collective',
+      karmic_healing: 'Karmic and Healing'
+    };
+    var normalized = normalizeBodyToken(category);
+    return labels[normalized] || titleCase(normalized || category || 'Theme');
+  }
+
+  function collectInterpretationSections(interpretation) {
+    if (!interpretation || typeof interpretation !== 'object' || Array.isArray(interpretation)) {
+      return [];
+    }
+
+    var sections = interpretation.sections;
+    if (!sections || typeof sections !== 'object' || Array.isArray(sections)) {
+      return [];
+    }
+
+    return Object.keys(sections).map(function (category) {
+      var entries = sections[category];
+      if (!Array.isArray(entries)) {
+        return null;
+      }
+      var cleanEntries = entries.map(function (entry) {
+        var title = '';
+        var body = '';
+        if (entry && typeof entry === 'object') {
+          title = typeof entry.title === 'string' ? entry.title.trim() : '';
+          body = textFromEntry(entry);
+        } else if (typeof entry === 'string') {
+          body = entry.trim();
+        }
+        if (!title || !body) {
+          return null;
+        }
+        return { title: title, body: body };
+      }).filter(Boolean);
+      if (!cleanEntries.length) {
+        return null;
+      }
+      return {
+        category: category,
+        title: interpretationCategoryLabel(category),
+        entries: cleanEntries
+      };
+    }).filter(Boolean);
+  }
+
   function cropText(text, detail) {
     if (detail !== 'concise') {
       return text;
@@ -1006,7 +1477,321 @@
     return null;
   }
 
-  function reportHtml(response, svg, mode, reportCfg) {
+  function birthContextHtml(request, cityItem, lang) {
+    if (!request) {
+      return '';
+    }
+
+    var dateLabel = [request.year, pad2(request.month), pad2(request.day)].join('-');
+    var timeLabel = request.time_known === false ? t('Time unknown', lang) : pad2(request.hour) + ':' + pad2(request.minute);
+    var placeLabel = cityItem ? cityValueLabel(cityItem) : (request.city || '');
+    var coords = Number.isFinite(Number(request.lat)) && Number.isFinite(Number(request.lng))
+      ? Number(request.lat).toFixed(4) + ', ' + Number(request.lng).toFixed(4)
+      : '';
+    var rows = [
+      [t('Date', lang), dateLabel],
+      [t('Time', lang), timeLabel],
+      [t('Place', lang), placeLabel || t('Unknown city', lang)],
+      [t('Timezone', lang), request.tz_str || '-'],
+      [t('Coordinates', lang), coords || '-']
+    ];
+
+    var html = '<section class="' + expandClassNames('openastro-card openastro-context-card') + '"><h3>' + esc(t('Birth Context', lang)) + '</h3>';
+    html += '<dl class="' + expandClassNames('openastro-context-list') + '">';
+    rows.forEach(function (row) {
+      html += '<div><dt>' + esc(row[0]) + '</dt><dd>' + esc(row[1]) + '</dd></div>';
+    });
+    html += '</dl></section>';
+    return html;
+  }
+
+  function normalizeBodyToken(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  }
+
+  function titleCase(value) {
+    return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, function (char) {
+      return char.toUpperCase();
+    });
+  }
+
+  function aspectTypeLabel(type, lang) {
+    var normalized = normalizeBodyToken(type);
+    var fallback = titleCase(type || 'aspect');
+    var key = 'aspect_type_' + normalized;
+    var translated = t(key, lang);
+    return translated === key ? fallback : translated;
+  }
+
+  function planetAspectAliases(planet) {
+    var aliases = [
+      normalizeBodyToken(planet.id),
+      normalizeBodyToken(planet.name)
+    ].filter(Boolean);
+    if (aliases.indexOf('north_node') >= 0) {
+      aliases.push('true_node', 'mean_node');
+    }
+    if (aliases.indexOf('true_node') >= 0 || aliases.indexOf('mean_node') >= 0) {
+      aliases.push('north_node');
+    }
+    if (aliases.indexOf('ascendant') >= 0) {
+      aliases.push('asc');
+    }
+    if (aliases.indexOf('asc') >= 0) {
+      aliases.push('ascendant');
+    }
+    if (aliases.indexOf('midheaven') >= 0) {
+      aliases.push('mc');
+    }
+    if (aliases.indexOf('mc') >= 0) {
+      aliases.push('midheaven');
+    }
+    return aliases.filter(function (alias, idx) {
+      return alias && aliases.indexOf(alias) === idx;
+    });
+  }
+
+  function aspectMatchesPlanet(aspect, aliases) {
+    var p1 = normalizeBodyToken(aspect.p1);
+    var p2 = normalizeBodyToken(aspect.p2);
+    return aliases.indexOf(p1) >= 0 || aliases.indexOf(p2) >= 0;
+  }
+
+  function otherAspectBody(aspect, aliases, focusName) {
+    var p1 = normalizeBodyToken(aspect.p1);
+    var p2 = normalizeBodyToken(aspect.p2);
+    if (aliases.indexOf(p1) >= 0) {
+      return aspect.p2 || focusName;
+    }
+    if (aliases.indexOf(p2) >= 0) {
+      return aspect.p1 || focusName;
+    }
+    return aspect.p2 || aspect.p1 || focusName;
+  }
+
+  function aspectOrbLabel(aspect) {
+    if (typeof aspect.orb === 'number') {
+      return aspect.orb.toFixed(2) + '°';
+    }
+    return aspect.orb ? String(aspect.orb) : '-';
+  }
+
+  function aspectBodyAliases(value) {
+    var normalized = normalizeBodyToken(value);
+    var aliases = [normalized];
+    if (normalized === 'asc') {
+      aliases.push('ascendant');
+    }
+    if (normalized === 'ascendant') {
+      aliases.push('asc');
+    }
+    if (normalized === 'mc') {
+      aliases.push('midheaven');
+    }
+    if (normalized === 'midheaven') {
+      aliases.push('mc');
+    }
+    if (normalized === 'north_node') {
+      aliases.push('true_node', 'mean_node');
+    }
+    if (normalized === 'true_node' || normalized === 'mean_node') {
+      aliases.push('north_node');
+    }
+    return aliases.filter(function (alias, idx) {
+      return alias && aliases.indexOf(alias) === idx;
+    });
+  }
+
+  function aspectKeyCandidates(aspect) {
+    var p1Aliases = aspectBodyAliases(aspect.p1);
+    var p2Aliases = aspectBodyAliases(aspect.p2);
+    var type = normalizeBodyToken(aspect.type);
+    var keys = [];
+    p1Aliases.forEach(function (p1) {
+      p2Aliases.forEach(function (p2) {
+        keys.push('aspect.' + p1 + '.' + type + '.' + p2);
+        keys.push('aspect.' + p2 + '.' + type + '.' + p1);
+      });
+    });
+    return keys.filter(function (key, idx) {
+      return key && keys.indexOf(key) === idx;
+    });
+  }
+
+  function findAspectAtom(atoms, aspect) {
+    var candidates = aspectKeyCandidates(aspect);
+    for (var i = 0; i < atoms.length; i += 1) {
+      var key = String(atoms[i].key || '').toLowerCase();
+      if (candidates.indexOf(key) >= 0) {
+        return atoms[i];
+      }
+    }
+    return null;
+  }
+
+  function aspectSymbol(type) {
+    var normalized = normalizeBodyToken(type);
+    var symbols = {
+      conjunction: '☌',
+      opposition: '☍',
+      trine: '△',
+      square: '□',
+      sextile: '⚹',
+      quincunx: '⚻',
+      inconjunct: '⚻',
+      semi_square: '∠',
+      semisquare: '∠',
+      sesquiquadrate: '⚼',
+      sesqui_square: '⚼'
+    };
+    return symbols[normalized] || '•';
+  }
+
+  function aspectMotionLabel(aspect, lang) {
+    if (typeof aspect.is_applying === 'boolean') {
+      return aspect.is_applying ? t('Applying', lang) : t('Separating', lang);
+    }
+    if (aspect.motion) {
+      return titleCase(aspect.motion);
+    }
+    return t('Unknown', lang);
+  }
+
+  function aspectStrengthLabel(aspect) {
+    var parts = [];
+    var label = aspect.strength_label || aspect.strengthLabel || aspect.intensity || '';
+    var score = aspect.strength_score || aspect.strengthScore || aspect.score || aspect.power;
+    if (label) {
+      parts.push(titleCase(label));
+    } else if (typeof aspect.is_major === 'boolean') {
+      parts.push(aspect.is_major ? 'Major' : 'Minor');
+    }
+    if (typeof score === 'number') {
+      parts.push(Math.round(score) + '/100');
+    } else if (typeof score === 'string' && score) {
+      parts.push(score);
+    }
+    return parts.join(', ');
+  }
+
+  function aspectMetaLabel(aspect, lang) {
+    var parts = [aspectOrbLabel(aspect), aspectMotionLabel(aspect, lang)];
+    var strength = aspectStrengthLabel(aspect);
+    if (strength) {
+      parts.push(strength);
+    }
+    return '(' + parts.join(', ') + ')';
+  }
+
+  function aspectModalMetaLabel(aspect, lang) {
+    var degree = typeof aspect.deg === 'number' ? aspect.deg + '°' : (aspect.degree || aspect.angle || '-');
+    return 'Orb ' + aspectOrbLabel(aspect) + ' • ' + degree + ' • ' + aspectMotionLabel(aspect, lang);
+  }
+
+  function aspectBodyName(value) {
+    var normalized = normalizeBodyToken(value);
+    var labels = {
+      asc: 'Asc',
+      ascendant: 'Ascendant',
+      dsc: 'Dsc',
+      descendant: 'Descendant',
+      mc: 'Mc',
+      midheaven: 'Midheaven',
+      ic: 'Ic',
+      north_node: 'North Node',
+      true_node: 'North Node',
+      mean_node: 'North Node'
+    };
+    return labels[normalized] || titleCase(value || normalized || '-');
+  }
+
+  function aspectListTitle(aspect, aliases, lang) {
+    return aspectTypeLabel(aspect.type, lang) + ' ' + aspectBodyName(otherAspectBody(aspect, aliases, '-'));
+  }
+
+  function aspectModalTitle(aspect, lang) {
+    return aspectTypeLabel(aspect.type, lang) + ' ' + aspectBodyName(aspect.p1) + ' - ' + aspectBodyName(aspect.p2);
+  }
+
+  function aspectBodyCellHtml(value, showGlyphs) {
+    return '<span class="' + expandClassNames('openastro-aspect-table-cell') + '">' +
+      (showGlyphs ? bodyGlyphHtml(value) : '') +
+      '<span>' + esc(aspectBodyName(value)) + '</span>' +
+      '</span>';
+  }
+
+  function aspectTypeCellHtml(aspect, lang, showGlyphs) {
+    return '<span class="' + expandClassNames('openastro-aspect-table-cell') + '">' +
+      (showGlyphs ? '<span class="' + expandClassNames('openastro-aspect-table-symbol') + '" aria-hidden="true">' + esc(aspectSymbol(aspect.type)) + '</span>' : '') +
+      '<span>' + esc(aspectTypeLabel(aspect.type, lang) || '-') + '</span>' +
+      '</span>';
+  }
+
+  function planetHouseLabel(planet) {
+    var value = planet && (planet.house || planet.house_number || planet.houseNumber || planet.house_id || planet.houseId);
+    var label = String(value || '').trim();
+    return label && label !== '-' && label !== '0' ? label : '';
+  }
+
+  function planetAspectListHtml(planet, aspects, atoms, lang, modalStore, showGlyphs) {
+    var aliases = planetAspectAliases(planet);
+    if (!aliases.length) {
+      return '';
+    }
+
+    var matches = aspects.filter(function (aspect) {
+      return aspectMatchesPlanet(aspect, aliases);
+    });
+
+    if (!matches.length) {
+      return '';
+    }
+
+    var html = '<div class="' + expandClassNames('openastro-planet-aspects') + '"><h5>' + esc(fmt('{planet} aspects', { planet: planet.name || planet.id || '-' }, lang)) + '</h5><ul class="' + expandClassNames('openastro-aspect-list') + '">';
+    matches.forEach(function (aspect) {
+      var atom = findAspectAtom(atoms, aspect);
+      var idx = modalStore.length;
+      var title = aspectModalTitle(aspect, lang);
+      modalStore.push({
+        title: title,
+        heading: atom && atom.title ? atom.title : title,
+        body: atom && atom.body ? atom.body : t('Interpretation was not returned for this aspect.', lang),
+        meta: aspectModalMetaLabel(aspect, lang)
+      });
+      html += '<li class="' + expandClassNames('openastro-aspect-item') + '">';
+      if (showGlyphs) {
+        html += '<span class="' + expandClassNames('openastro-aspect-symbol') + '" aria-hidden="true">' + esc(aspectSymbol(aspect.type)) + '</span>';
+      }
+      html += '<button type="button" class="' + expandClassNames('openastro-aspect-link') + '" data-openastro-aspect-modal="' + esc(idx) + '">' + esc(aspectListTitle(aspect, aliases, lang)) + '</button>';
+      html += '<span class="' + expandClassNames('openastro-aspect-meta') + '">' + esc(aspectMetaLabel(aspect, lang)) + '</span>';
+      html += '</li>';
+    });
+    html += '</ul></div>';
+    return html;
+  }
+
+  function thematicInterpretationHtml(interpretation, reportCfg, lang) {
+    var sections = collectInterpretationSections(interpretation);
+    if (!sections.length) {
+      return '';
+    }
+
+    var html = '<section class="' + expandClassNames('openastro-card openastro-thematic-interpretation') + '"><h3>' + esc(t('Thematic Interpretation', lang)) + '</h3>';
+    sections.forEach(function (section) {
+      html += '<div class="' + expandClassNames('openastro-theme-group') + '"><h4>' + esc(section.title) + '</h4>';
+      section.entries.forEach(function (entry) {
+        html += '<article class="' + expandClassNames('openastro-theme-entry') + '">';
+        html += '<h5>' + esc(entry.title) + '</h5>';
+        html += '<p>' + esc(cropText(entry.body, reportCfg.detailLevel)) + '</p>';
+        html += '</article>';
+      });
+      html += '</div>';
+    });
+    html += '</section>';
+    return html;
+  }
+
+  function reportHtml(response, svg, mode, reportCfg, requestPayload, cityItem, lang, modalStore) {
     var planets = Array.isArray(response.planets) ? response.planets : [];
     var aspects = Array.isArray(response.aspects) ? response.aspects.slice() : [];
     var atoms = collectInterpretationAtoms(response.interpretation);
@@ -1015,67 +1800,78 @@
       return Number(a.orb || 0) - Number(b.orb || 0);
     });
 
-    var html = '<h2 class="' + expandClassNames('openastro-report-title') + '">Natal Report</h2>';
+    var html = '<h2 class="' + expandClassNames('openastro-report-title') + '">' + esc(t('Natal Report', lang)) + '</h2>';
 
     if (mode === 'chart-report' && svg) {
-      html += chartSectionHtml(svg, reportCfg);
+      html += chartSectionHtml(svg, reportCfg, lang);
     }
 
-    if (reportCfg.showAngles) {
+    if (reportCfg.showBirthContext) {
+      html += birthContextHtml(requestPayload, cityItem, lang);
+    }
+
+    if (reportCfg.showThematicInterpretation) {
+      html += thematicInterpretationHtml(response.interpretation, reportCfg, lang);
+    }
+
+    if (reportCfg.showAngles && requestPayload && requestPayload.time_known !== false) {
       var ascAtom = findAngleAtom(atoms, 'ascendant') || findAngleAtom(atoms, 'asc');
       var mcAtom = findAngleAtom(atoms, 'midheaven') || findAngleAtom(atoms, 'mc');
       var asc = response.angles_details && response.angles_details.asc ? response.angles_details.asc : null;
       var mc = response.angles_details && response.angles_details.mc ? response.angles_details.mc : null;
 
-      html += '<section class="' + expandClassNames('openastro-card') + '"><h3>1st House / ASC</h3>';
+      html += '<section class="' + expandClassNames('openastro-card') + '"><h3>' + esc(t('1st House / ASC', lang)) + '</h3>';
       if (asc) {
         var ascSignGlyph = glyphForSign(asc.sign);
-        html += '<p><strong>Sign:</strong> ' + esc(asc.sign || '-') + (ascSignGlyph ? ' ' + glyphSpan(ascSignGlyph) : '') + ' <strong>House:</strong> ' + esc(asc.house || '-') + '</p>';
+        html += '<p><strong>' + esc(t('Sign:', lang)) + '</strong> ' + esc(asc.sign || '-') + (ascSignGlyph ? ' ' + glyphSpan(ascSignGlyph) : '') + ' <strong>' + esc(t('House:', lang)) + '</strong> ' + esc(asc.house || '-') + '</p>';
       }
-      html += '<p>' + esc(cropText(ascAtom ? ascAtom.body : 'Ascendant interpretation was not returned for this chart.', reportCfg.detailLevel)) + '</p>';
+      html += '<p>' + esc(cropText(ascAtom ? ascAtom.body : t('Ascendant interpretation was not returned for this chart.', lang), reportCfg.detailLevel)) + '</p>';
       html += '</section>';
 
-      html += '<section class="' + expandClassNames('openastro-card') + '"><h3>10th House Cusp / MC</h3>';
+      html += '<section class="' + expandClassNames('openastro-card') + '"><h3>' + esc(t('10th House Cusp / MC', lang)) + '</h3>';
       if (mc) {
         var mcSignGlyph = glyphForSign(mc.sign);
-        html += '<p><strong>Sign:</strong> ' + esc(mc.sign || '-') + (mcSignGlyph ? ' ' + glyphSpan(mcSignGlyph) : '') + ' <strong>House:</strong> ' + esc(mc.house || '-') + '</p>';
+        html += '<p><strong>' + esc(t('Sign:', lang)) + '</strong> ' + esc(mc.sign || '-') + (mcSignGlyph ? ' ' + glyphSpan(mcSignGlyph) : '') + ' <strong>' + esc(t('House:', lang)) + '</strong> ' + esc(mc.house || '-') + '</p>';
       }
-      html += '<p>' + esc(cropText(mcAtom ? mcAtom.body : 'Midheaven interpretation was not returned for this chart.', reportCfg.detailLevel)) + '</p>';
+      html += '<p>' + esc(cropText(mcAtom ? mcAtom.body : t('Midheaven interpretation was not returned for this chart.', lang), reportCfg.detailLevel)) + '</p>';
       html += '</section>';
     }
 
-    html += '<section class="' + expandClassNames('openastro-card') + '"><h3>Planet Interpretations</h3>';
+    html += '<section class="' + expandClassNames('openastro-card') + '"><h3>' + esc(t('Planet Interpretations', lang)) + '</h3>';
     planets.slice(0, reportCfg.maxPlanets).forEach(function (planet) {
       var atom = findPlanetAtom(atoms, planet);
-      var defaultBody = PLANET_OVERVIEW[String(planet.id || '').toLowerCase()] || 'Interpretation not available for this planet.';
+      var defaultBody = PLANET_OVERVIEW[String(planet.id || '').toLowerCase()] || t('Interpretation not available for this planet.', lang);
       var body = atom ? atom.body : defaultBody;
-      var bodyGlyph = glyphForBody(planet.id);
+      var bodyGlyph = bodyGlyphHtml(planet.id);
       var signGlyph = glyphForSign(planet.sign);
       var planetName = planet.name || planet.id || '-';
       var signName = planet.sign || '-';
-      var houseLabel = planet.house || '-';
+      var houseLabel = planetHouseLabel(planet);
       html += '<article class="' + expandClassNames('openastro-planet-item') + '">';
-      html += '<h4>' + esc(planetName) + (bodyGlyph ? ' ' + glyphSpan(bodyGlyph) : '') + esc(' in ' + signName) + (signGlyph ? ' ' + glyphSpan(signGlyph) : '') + esc(' (House ' + houseLabel + ')') + '</h4>';
+      html += '<h4>' + esc(planetName) + (bodyGlyph ? ' ' + bodyGlyph : '') + esc(' in ' + signName) + (signGlyph ? ' ' + glyphSpan(signGlyph) : '') + (houseLabel ? esc(' (House ' + houseLabel + ')') : '') + '</h4>';
       html += '<p>' + esc(cropText(body, reportCfg.detailLevel)) + '</p>';
+      if (reportCfg.showAspectLinks) {
+        html += planetAspectListHtml(planet, aspects, atoms, lang, modalStore || [], reportCfg.showAspectGlyphs);
+      }
       html += '</article>';
     });
     html += '</section>';
 
-    html += '<section class="' + expandClassNames('openastro-card') + '"><h3>All Aspect Dynamics</h3>';
+    html += '<section class="' + expandClassNames('openastro-card') + '"><h3>' + esc(t('All Aspect Dynamics', lang)) + '</h3>';
     if (reportCfg.showTables) {
-      html += '<table><thead><tr><th>P1</th><th>Aspect</th><th>P2</th><th>Orb</th><th>Major</th></tr></thead><tbody>';
-      aspects.slice(0, reportCfg.maxAspects).forEach(function (a) {
+      html += '<table><thead><tr><th>' + esc(t('P1', lang)) + '</th><th>' + esc(t('Aspect', lang)) + '</th><th>' + esc(t('P2', lang)) + '</th><th>' + esc(t('Orb', lang)) + '</th><th>' + esc(t('Major', lang)) + '</th></tr></thead><tbody>';
+      aspects.forEach(function (a) {
         html += '<tr>' +
-          '<td>' + esc(a.p1 || '-') + '</td>' +
-          '<td>' + esc(a.type || '-') + '</td>' +
-          '<td>' + esc(a.p2 || '-') + '</td>' +
+          '<td>' + aspectBodyCellHtml(a.p1 || '-', reportCfg.showAspectGlyphs) + '</td>' +
+          '<td>' + aspectTypeCellHtml(a, lang, reportCfg.showAspectGlyphs) + '</td>' +
+          '<td>' + aspectBodyCellHtml(a.p2 || '-', reportCfg.showAspectGlyphs) + '</td>' +
           '<td>' + esc(typeof a.orb === 'number' ? a.orb.toFixed(2) : a.orb || '-') + '</td>' +
-          '<td>' + esc(a.is_major ? 'Yes' : 'No') + '</td>' +
+          '<td>' + esc(a.is_major ? t('Yes', lang) : t('No', lang)) + '</td>' +
           '</tr>';
       });
       html += '</tbody></table>';
     } else {
-      html += '<p>' + esc(aspects.length) + ' aspects detected.</p>';
+      html += '<p>' + esc(fmt('{count} aspects detected.', { count: aspects.length }, lang)) + '</p>';
     }
     html += '</section>';
 
@@ -1412,6 +2208,7 @@
   function mount(container) {
     var mode = container.getAttribute('data-mode') || 'chart-report';
     var cfg = getCfg();
+    var lang = resolveLanguage(container.getAttribute('data-language') || cfg.language || 'auto');
     var includeInterpretation = container.getAttribute('data-include-interpretation') !== '0';
     var interpretationStyle = container.getAttribute('data-interpretation-style') === 'poetic' ? 'poetic' : 'improved';
     var simpleMode = isSimpleSignMode(mode);
@@ -1436,6 +2233,10 @@
     setSuiteVariable(container, '--openastro-focus-ring', cfg.style.focusRingColor);
     setSuiteVariable(container, '--openastro-astro-font-size', cfg.style.astroFontSize + 'px');
     setSuiteVariable(container, '--openastro-astro-font-color', cfg.style.astroFontColor);
+    setSuiteVariable(container, '--openastro-modal-bg', cfg.style.modalBgColor);
+    setSuiteVariable(container, '--openastro-modal-text', cfg.style.modalTextColor);
+    setSuiteVariable(container, '--openastro-modal-border', cfg.style.modalBorderColor);
+    setSuiteVariable(container, '--openastro-modal-accent', cfg.style.modalAccentColor);
     setSuiteVariable(container, '--openastro-font-h2', cfg.typography.h2 + 'px');
     setSuiteVariable(container, '--openastro-font-h3', cfg.typography.h3 + 'px');
     setSuiteVariable(container, '--openastro-font-h4', cfg.typography.h4 + 'px');
@@ -1466,7 +2267,7 @@
 
     if (!cfg.permissions.canCalculate) {
       var accessNote = create('section', { class: 'openastro-card openastro-access-note' });
-      accessNote.appendChild(create('h3', null, 'Calculation Access Required'));
+      accessNote.appendChild(create('h3', null, t('Calculation Access Required', lang)));
       accessNote.appendChild(create('p', null, cfg.permissions.calculationMessage));
       container.appendChild(accessNote);
       return;
@@ -1485,9 +2286,9 @@
       var historyWrap = create('div', { class: 'openastro-load-recent-wrap' });
       var historyPanel = create('div', { class: 'openastro-load-recent-panel' });
       var historyId = 'openastro-history-select-' + Math.random().toString(36).slice(2, 10);
-      var historyLabel = create('label', { class: 'openastro-history-label openastro-load-recent-label', for: historyId }, 'Past inputs');
-      historySelect = create('select', { id: historyId, class: 'openastro-history-select openastro-load-recent-select', 'aria-label': 'Load recent past inputs' });
-      var historyDefaultOption = create('option', { value: '' }, 'Past inputs...');
+      var historyLabel = create('label', { class: 'openastro-history-label openastro-load-recent-label', for: historyId }, t('Past inputs', lang));
+      historySelect = create('select', { id: historyId, class: 'openastro-history-select openastro-load-recent-select', 'aria-label': t('Load recent past inputs', lang) });
+      var historyDefaultOption = create('option', { value: '' }, t('Past inputs...', lang));
       historySelect.appendChild(historyDefaultOption);
       historyPanel.appendChild(historyLabel);
       historyPanel.appendChild(historySelect);
@@ -1495,9 +2296,13 @@
       formHeader.appendChild(historyWrap);
       form.appendChild(formHeader);
     }
-    var name = create('input', { type: 'text', class: 'openastro-input', placeholder: 'Name (optional)' });
-    var date = create('input', { type: 'date', class: 'openastro-input' });
-    var time = create('input', { type: 'time', step: '60', class: 'openastro-input' });
+    var name = create('input', { type: 'text', class: 'openastro-input', placeholder: t('Name (optional)', lang), 'aria-label': t('Name (optional)', lang) });
+    var date = create('input', { type: 'date', class: 'openastro-input', 'aria-label': t('Birth date', lang) });
+    var timeControl = createTimeControls(lang);
+    var timeUnknownWrap = create('label', { class: 'openastro-inline openastro-time-unknown-wrap' });
+    var timeUnknown = create('input', { type: 'checkbox' });
+    timeUnknownWrap.appendChild(timeUnknown);
+    timeUnknownWrap.appendChild(document.createTextNode(' ' + t("I don't know my birth time", lang)));
     var cityId = 'openastro-city-input-' + Math.random().toString(36).slice(2, 10);
     var cityResultsId = 'openastro-city-results-' + Math.random().toString(36).slice(2, 10);
     var cityMessageId = 'openastro-city-message-' + Math.random().toString(36).slice(2, 10);
@@ -1505,7 +2310,8 @@
       id: cityId,
       type: 'text',
       class: 'openastro-input openastro-city-input',
-      placeholder: 'City or city, country code',
+      placeholder: t('City or city, country code', lang),
+      'aria-label': t('City or city, country code', lang),
       role: 'combobox',
       'aria-autocomplete': 'list',
       'aria-haspopup': 'listbox',
@@ -1515,19 +2321,24 @@
     });
     var cityWrap = create('div', { class: 'openastro-city-field' });
     var cityLoading = create('p', { id: cityMessageId, class: 'openastro-city-loading', 'aria-live': 'polite' }, '');
-    var cityResults = create('div', { id: cityResultsId, class: 'openastro-results', role: 'listbox', 'aria-label': 'City suggestions' });
+    var cityResults = create('div', { id: cityResultsId, class: 'openastro-results', role: 'listbox', 'aria-label': t('City suggestions', lang) });
     var includeMinorWrap = create('label', { class: 'openastro-inline' });
     var includeMinor = create('input', { type: 'checkbox', checked: 'checked' });
     includeMinorWrap.appendChild(includeMinor);
-    includeMinorWrap.appendChild(document.createTextNode(' Include minor aspects'));
+    includeMinorWrap.appendChild(document.createTextNode(' ' + t('Include minor aspects', lang)));
 
-    var submit = create('button', { type: 'submit', class: 'openastro-btn' }, 'Generate');
+    var submit = create('button', { type: 'submit', class: 'openastro-btn' }, t('Generate', lang));
     var status = create('p', { class: 'openastro-status' }, '');
     var output = create('div', { class: 'openastro-output' });
+    var modalRoot = create('div', { class: 'openastro-aspect-modal-root', hidden: 'hidden' });
+    var currentAspectModalStore = [];
 
     form.appendChild(name);
     form.appendChild(date);
-    form.appendChild(time);
+    form.appendChild(timeControl.wrap);
+    if (!simpleMode) {
+      form.appendChild(timeUnknownWrap);
+    }
     cityWrap.appendChild(city);
     cityWrap.appendChild(cityLoading);
     cityWrap.appendChild(cityResults);
@@ -1540,6 +2351,7 @@
 
     container.appendChild(form);
     container.appendChild(output);
+    container.appendChild(modalRoot);
 
     var cityTimer = null;
     var cityRequestId = 0;
@@ -1547,6 +2359,62 @@
     var activeCityIndex = -1;
     var selectedCity = null;
     var historyEntries = showHistory ? getHistory() : [];
+
+    function closeAspectModal() {
+      modalRoot.setAttribute('hidden', 'hidden');
+      modalRoot.innerHTML = '';
+    }
+
+    function openAspectModal(item) {
+      if (!item) {
+        return;
+      }
+
+      modalRoot.innerHTML = '';
+      modalRoot.removeAttribute('hidden');
+
+      var modal = create('section', { class: 'openastro-aspect-modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': item.title || t('Interpretation', lang) });
+      var header = create('div', { class: 'openastro-aspect-modal-header' });
+      var titleWrap = create('div', { class: 'openastro-aspect-modal-title-wrap' });
+      titleWrap.appendChild(create('h3', null, item.title || t('Interpretation', lang)));
+      titleWrap.appendChild(create('p', { class: 'openastro-aspect-modal-meta' }, item.meta || ''));
+      var close = create('button', { type: 'button', class: 'openastro-aspect-modal-close' }, t('Close', lang));
+      close.addEventListener('click', closeAspectModal);
+      header.appendChild(titleWrap);
+      header.appendChild(close);
+      modal.appendChild(header);
+      modal.appendChild(create('h4', null, item.heading || item.title || t('Interpretation', lang)));
+      modal.appendChild(create('p', { class: 'openastro-aspect-modal-body' }, item.body || t('Interpretation was not returned for this aspect.', lang)));
+      modalRoot.appendChild(modal);
+      close.focus();
+    }
+
+    modalRoot.addEventListener('click', function (event) {
+      if (event.target === modalRoot) {
+        closeAspectModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !modalRoot.hasAttribute('hidden')) {
+        closeAspectModal();
+      }
+    });
+
+    function timeKnownSelected() {
+      return simpleMode || !timeUnknown.checked;
+    }
+
+    function syncTimeKnownState() {
+      var timeKnown = timeKnownSelected();
+      timeControl.setDisabled(!timeKnown);
+      if (!timeKnown) {
+        timeControl.setValue('');
+      }
+    }
+
+    timeUnknown.addEventListener('change', syncTimeKnownState);
+    syncTimeKnownState();
 
     function setCityExpanded(expanded) {
       var isExpanded = expanded && citySuggestions.length;
@@ -1592,7 +2460,9 @@
       cityRequestId += 1;
       selectedCity = item;
       city.value = cityValueLabel(item);
-      setCityMessage('Selected ' + cityValueLabel(item) + (cityTimezoneLabel(item) ? ' - ' + cityTimezoneLabel(item) : '') + '.');
+      setCityMessage(cityTimezoneLabel(item)
+        ? fmt('Selected {city} - {timezone}.', { city: cityValueLabel(item), timezone: cityTimezoneLabel(item) }, lang)
+        : fmt('Selected {city}.', { city: cityValueLabel(item) }, lang));
       clearCityResults();
     }
 
@@ -1613,7 +2483,7 @@
         var main = create('span', { class: 'openastro-result-main' });
         var primary = create('span', { class: 'openastro-result-primary' });
         var countryCode = cityCountryCode(item);
-        primary.appendChild(create('span', { class: 'openastro-result-name' }, item.name || 'Unknown city'));
+        primary.appendChild(create('span', { class: 'openastro-result-name' }, item.name || t('Unknown city', lang)));
         if (countryCode) {
           primary.appendChild(create('span', { class: 'openastro-result-country' }, countryCode));
         }
@@ -1637,7 +2507,7 @@
 
       setCityExpanded(true);
       setActiveCityIndex(0);
-      setCityMessage(items.length + ' match' + (items.length === 1 ? '' : 'es') + ' for "' + query + '". Use arrow keys or click a city.');
+      setCityMessage(fmt(items.length === 1 ? '{count} match for "{query}". Use arrow keys or click a city.' : '{count} matches for "{query}". Use arrow keys or click a city.', { count: items.length, query: query }, lang));
     }
 
     function refreshHistorySelect() {
@@ -1645,9 +2515,9 @@
         return;
       }
       historySelect.innerHTML = '';
-      historySelect.appendChild(create('option', { value: '' }, 'Past inputs...'));
+      historySelect.appendChild(create('option', { value: '' }, t('Past inputs...', lang)));
       historyEntries.forEach(function (entry, idx) {
-        var option = create('option', { value: String(idx) }, historyOptionLabel(entry));
+        var option = create('option', { value: String(idx) }, historyOptionLabel(entry, lang));
         historySelect.appendChild(option);
       });
     }
@@ -1656,7 +2526,11 @@
       if (!entry) return;
       name.value = entry.name || '';
       date.value = toDateValue(entry);
-      time.value = toTimeValue(entry);
+      if (!simpleMode) {
+        timeUnknown.checked = entry.time_known === false;
+      }
+      timeControl.setValue(toTimeValue(entry));
+      syncTimeKnownState();
       var country = entry.country ? entry.country : '--';
       city.value = (entry.city_name || '') + ', ' + country;
       selectedCity = {
@@ -1672,7 +2546,7 @@
       cityRequestId += 1;
       clearCityResults();
       setCityMessage('');
-      status.textContent = 'Loaded saved input.';
+      status.textContent = t('Loaded saved input.', lang);
     }
 
     refreshHistorySelect();
@@ -1706,12 +2580,12 @@
       var requestId = cityRequestId;
       if (parsedSearch.query.length < 2) {
         if (parsedSearch.query.length > 0) {
-          setCityMessage('Type at least 2 characters to search cities.');
+          setCityMessage(t('Type at least 2 characters to search cities.', lang));
         }
         return;
       }
 
-      setCityMessage('Searching cities...');
+      setCityMessage(t('Searching cities...', lang));
       cityTimer = setTimeout(function () {
         var path = '/geo/search?q=' + encodeURIComponent(parsedSearch.query) + '&limit=8';
         if (parsedSearch.country) {
@@ -1725,11 +2599,11 @@
             clearCityResults();
             setCityMessage('');
             if (!result.ok || !result.body || !Array.isArray(result.body.results)) {
-              setCityMessage('Could not load city suggestions.');
+              setCityMessage(t('Could not load city suggestions.', lang));
               return;
             }
             if (result.body.results.length === 0) {
-              setCityMessage('No cities found. Try another query.');
+              setCityMessage(t('No cities found. Try another query.', lang));
               return;
             }
 
@@ -1740,7 +2614,7 @@
               return;
             }
             clearCityResults();
-            setCityMessage('Could not load city suggestions.');
+            setCityMessage(t('Could not load city suggestions.', lang));
           });
       }, 300);
     });
@@ -1776,28 +2650,41 @@
     form.addEventListener('submit', function (event) {
       event.preventDefault();
 
-      if (!date.value || !time.value || !selectedCity) {
-        status.textContent = 'Date, time, and a city from suggestions are required.';
+      var timeValue = timeControl.value();
+      var timeKnown = timeKnownSelected();
+      if (!date.value || !selectedCity) {
+        status.textContent = t('Date and a city from suggestions are required.', lang);
+        return;
+      }
+      if (timeKnown && !timeValue) {
+        status.textContent = t('Birth time is required, or choose unknown time.', lang);
         return;
       }
 
       var d = date.value.split('-');
-      var t = time.value.split(':');
       var payload = {
         name: name.value || '',
         year: Number(d[0]),
         month: Number(d[1]),
         day: Number(d[2]),
-        hour: Number(t[0]),
-        minute: Number(t[1]),
         city: selectedCity.name,
         lat: selectedCity.lat,
         lng: selectedCity.lng,
         tz_str: selectedCity.timezone
       };
 
+      if (!simpleMode) {
+        payload.time_known = timeKnown;
+      }
+
+      if (timeKnown) {
+        var tParts = timeValue.split(':');
+        payload.hour = Number(tParts[0]);
+        payload.minute = Number(tParts[1]);
+      }
+
       submit.disabled = true;
-      status.textContent = 'Generating...';
+      status.textContent = t('Generating...', lang);
       output.innerHTML = '';
 
       if (simpleMode) {
@@ -1812,16 +2699,16 @@
         })
           .then(function (result) {
             if (!result.ok || !result.body) {
-              status.textContent = (result.body && result.body.message) || 'Could not generate simple sign.';
+              status.textContent = (result.body && result.body.message) || t('Could not generate simple sign.', lang);
               return;
             }
 
-            output.innerHTML = simpleSignHtml(result.body, includeInterpretation);
-            status.textContent = 'Done.';
+            output.innerHTML = simpleSignHtml(result.body, includeInterpretation, lang);
+            status.textContent = t('Done.', lang);
             saveHistoryEntry(false, payload, selectedCity);
           })
           .catch(function () {
-            status.textContent = 'Unexpected error while generating data.';
+            status.textContent = t('Unexpected error while generating data.', lang);
           })
           .finally(function () {
             submit.disabled = false;
@@ -1849,6 +2736,7 @@
       }
 
       function renderGeneration(natalBody, svg, message) {
+        currentAspectModalStore = [];
         var detail = {
           request: payload,
           response: natalBody || null,
@@ -1858,14 +2746,14 @@
         window.dispatchEvent(new CustomEvent('openastro:natal:generated', { detail: detail }));
 
         if (mode === 'chart-only') {
-          output.innerHTML = chartSectionHtml(svg, cfg.report);
+          output.innerHTML = chartSectionHtml(svg, cfg.report, lang);
         } else if (mode === 'report-only') {
-          output.innerHTML = reportHtml(natalBody, '', mode, cfg.report);
+          output.innerHTML = reportHtml(natalBody, '', mode, cfg.report, payload, selectedCity, lang, currentAspectModalStore);
         } else {
-          output.innerHTML = reportHtml(natalBody, svg, mode, cfg.report);
+          output.innerHTML = reportHtml(natalBody, svg, mode, cfg.report, payload, selectedCity, lang, currentAspectModalStore);
         }
 
-        status.textContent = message || 'Done.';
+        status.textContent = message || t('Done.', lang);
         saveHistoryEntry(includeMinor.checked, payload, selectedCity);
       }
 
@@ -1873,14 +2761,14 @@
         postChartSvg()
           .then(function (chart) {
             if (!chart.ok || !chart.body || !chart.body.svg) {
-              status.textContent = (chart.body && chart.body.message) || 'Could not generate natal chart.';
+              status.textContent = (chart.body && chart.body.message) || t('Could not generate natal chart.', lang);
               return;
             }
 
-            renderGeneration(null, chart.body.svg, 'Done.');
+            renderGeneration(null, chart.body.svg, t('Done.', lang));
           })
           .catch(function () {
-            status.textContent = 'Unexpected error while generating data.';
+            status.textContent = t('Unexpected error while generating data.', lang);
           })
           .finally(function () {
             submit.disabled = false;
@@ -1893,14 +2781,14 @@
         postNatalCalculate()
           .then(function (natal) {
             if (!natal.ok || !natal.body) {
-              status.textContent = (natal.body && natal.body.message) || 'Could not generate natal data.';
+              status.textContent = (natal.body && natal.body.message) || t('Could not generate natal data.', lang);
               return;
             }
 
-            renderGeneration(natal.body, '', 'Done.');
+            renderGeneration(natal.body, '', t('Done.', lang));
           })
           .catch(function () {
-            status.textContent = 'Unexpected error while generating data.';
+            status.textContent = t('Unexpected error while generating data.', lang);
           })
           .finally(function () {
             submit.disabled = false;
@@ -1915,15 +2803,15 @@
           var chart = result[1];
 
           if (!natal.ok || !natal.body) {
-            status.textContent = (natal.body && natal.body.message) || 'Could not generate natal data.';
+            status.textContent = (natal.body && natal.body.message) || t('Could not generate natal data.', lang);
             return;
           }
 
           var svg = chart.ok && chart.body && chart.body.svg ? chart.body.svg : '';
-          renderGeneration(natal.body, svg, svg ? 'Done.' : 'Done. Chart unavailable.');
+          renderGeneration(natal.body, svg, svg ? t('Done.', lang) : t('Done. Chart unavailable.', lang));
         })
         .catch(function () {
-          status.textContent = 'Unexpected error while generating data.';
+          status.textContent = t('Unexpected error while generating data.', lang);
         })
         .finally(function () {
           submit.disabled = false;
@@ -1933,6 +2821,14 @@
     output.addEventListener('click', function (event) {
       var target = event.target;
       if (!target || !target.closest) {
+        return;
+      }
+
+      var aspectButton = target.closest('[data-openastro-aspect-modal]');
+      if (aspectButton) {
+        event.preventDefault();
+        var idx = Number(aspectButton.getAttribute('data-openastro-aspect-modal'));
+        openAspectModal(currentAspectModalStore[idx]);
         return;
       }
 

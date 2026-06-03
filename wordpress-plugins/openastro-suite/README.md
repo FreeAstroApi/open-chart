@@ -22,6 +22,7 @@ Install this plugin to get Astrology Suite for FreeAstroAPI in one package.
   - `astrology-suite/ephemeris`
 - Shortcodes:
   - `[astrology_suite mode="chart-report"]`
+  - `[astrology_suite mode="chart-report" language="vi"]`
   - `[astrology_suite_chart_only]`
   - `[astrology_suite_report_only]`
   - `[astrology_suite_chart_report]`
@@ -36,8 +37,12 @@ Install this plugin to get Astrology Suite for FreeAstroAPI in one package.
 - `Chart only` does not render a legend.
 - `Ephemeris` renders a monthly FreeAstroAPI table grid with body filters, tropical/sidereal mode, optional city for local points, CSV download, and table-specific style controls.
 - Report rendering can be customized in plugin settings.
+- Report output can include birth context, optional themed interpretation groups, and clickable planet aspect links that open the matching FreeAstroAPI interpretation block in a modal; this does not use the psychological report flow.
 - Chart SVG/PNG styling can be customized from the Custom Chart tab with presets, FreeAstroAPI-generated PNG previews, per-theme chart request bodies, or a custom chart_config JSON object from the FreeAstroAPI Chart Designer.
 - Typography, colors, border, and ephemeris table styling can be customized in plugin settings.
+- Forms use explicit 24-hour controls (`00`-`23`) for birth time.
+- Natal chart/report forms include an "I don't know my birth time" option. When selected, chart and report requests send `time_known: false` and angle/house-dependent report sections are skipped if the API omits them.
+- Frontend UI text can be localized from settings or with the shortcode `language` attribute. FreeAstroAPI interpretation text is displayed exactly as the API returns it; unsupported interpretation languages are not requested.
 - Container background transparency, inputs, buttons, and Past inputs visuals are customizable (visibility, radius, border, colors, placeholder, labels, focus ring).
 - Forms include a local “Past inputs…” dropdown (last 20 successful requests, browser-local only).
 - Public visitors can submit natal chart, report, simple-sign, and ephemeris forms by default. Site admins can turn public calculations off in `Settings > Astrology Suite > API` to restrict calculations to logged-in users who can edit posts.

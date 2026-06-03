@@ -39,11 +39,16 @@ class Plugin
 
     public const OPTION_API_KEY = 'openastro_api_key';
     public const OPTION_PUBLIC_CALCULATIONS = 'openastro_public_calculations';
+    public const OPTION_FRONTEND_LANGUAGE = 'openastro_frontend_language';
     public const OPTION_REPORT_DETAIL = 'openastro_report_detail';
     public const OPTION_REPORT_MAX_PLANETS = 'openastro_report_max_planets';
     public const OPTION_REPORT_MAX_ASPECTS = 'openastro_report_max_aspects';
     public const OPTION_REPORT_SHOW_TABLES = 'openastro_report_show_tables';
     public const OPTION_REPORT_SHOW_ANGLES = 'openastro_report_show_angles';
+    public const OPTION_REPORT_SHOW_BIRTH_CONTEXT = 'openastro_report_show_birth_context';
+    public const OPTION_REPORT_SHOW_PERSONALIZED_NOTES = 'openastro_report_show_personalized_notes';
+    public const OPTION_REPORT_SHOW_ASPECT_GLYPHS = 'openastro_report_show_aspect_glyphs';
+    public const OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION = 'openastro_report_show_thematic_interpretation';
     public const OPTION_CHART_SHOW_PRINT_BUTTON = 'openastro_chart_show_print_button';
     public const OPTION_CHART_THEME = 'openastro_chart_theme';
     public const OPTION_CHART_CUSTOM_CONFIG = 'openastro_chart_custom_config';
@@ -82,6 +87,10 @@ class Plugin
     public const OPTION_STYLE_FOCUS_RING_COLOR = 'openastro_style_focus_ring_color';
     public const OPTION_STYLE_ASTRO_FONT_SIZE = 'openastro_style_astro_font_size';
     public const OPTION_STYLE_ASTRO_FONT_COLOR = 'openastro_style_astro_font_color';
+    public const OPTION_STYLE_MODAL_BG_COLOR = 'openastro_style_modal_bg_color';
+    public const OPTION_STYLE_MODAL_TEXT_COLOR = 'openastro_style_modal_text_color';
+    public const OPTION_STYLE_MODAL_BORDER_COLOR = 'openastro_style_modal_border_color';
+    public const OPTION_STYLE_MODAL_ACCENT_COLOR = 'openastro_style_modal_accent_color';
     public const OPTION_EPHEMERIS_TABLE_BG_COLOR = 'openastro_ephemeris_table_bg_color';
     public const OPTION_EPHEMERIS_TABLE_TEXT_COLOR = 'openastro_ephemeris_table_text_color';
     public const OPTION_EPHEMERIS_TABLE_BORDER_COLOR = 'openastro_ephemeris_table_border_color';
@@ -865,11 +874,16 @@ JSON
         $keys = [
             self::OPTION_API_KEY,
             self::OPTION_PUBLIC_CALCULATIONS,
+            self::OPTION_FRONTEND_LANGUAGE,
             self::OPTION_REPORT_DETAIL,
             self::OPTION_REPORT_MAX_PLANETS,
             self::OPTION_REPORT_MAX_ASPECTS,
             self::OPTION_REPORT_SHOW_TABLES,
             self::OPTION_REPORT_SHOW_ANGLES,
+            self::OPTION_REPORT_SHOW_BIRTH_CONTEXT,
+            self::OPTION_REPORT_SHOW_PERSONALIZED_NOTES,
+            self::OPTION_REPORT_SHOW_ASPECT_GLYPHS,
+            self::OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION,
             self::OPTION_CHART_SHOW_PRINT_BUTTON,
             self::OPTION_CHART_THEME,
             self::OPTION_CHART_CUSTOM_CONFIG,
@@ -903,6 +917,10 @@ JSON
             self::OPTION_STYLE_FOCUS_RING_COLOR,
             self::OPTION_STYLE_ASTRO_FONT_SIZE,
             self::OPTION_STYLE_ASTRO_FONT_COLOR,
+            self::OPTION_STYLE_MODAL_BG_COLOR,
+            self::OPTION_STYLE_MODAL_TEXT_COLOR,
+            self::OPTION_STYLE_MODAL_BORDER_COLOR,
+            self::OPTION_STYLE_MODAL_ACCENT_COLOR,
         ];
 
         foreach ($keys as $key) {
@@ -955,6 +973,30 @@ JSON
     public static function sanitize_public_calculations($value): bool
     {
         return (bool) $value;
+    }
+
+    private static function supported_frontend_languages(): array
+    {
+        return [
+            'auto' => __('Auto (site/browser language)', 'astrology-suite-freeastroapi'),
+            'en' => __('English', 'astrology-suite-freeastroapi'),
+            'vi' => __('Vietnamese', 'astrology-suite-freeastroapi'),
+            'fr' => __('French', 'astrology-suite-freeastroapi'),
+            'es' => __('Spanish', 'astrology-suite-freeastroapi'),
+            'de' => __('German', 'astrology-suite-freeastroapi'),
+            'pt' => __('Portuguese', 'astrology-suite-freeastroapi'),
+        ];
+    }
+
+    public static function sanitize_frontend_language($value): string
+    {
+        $candidate = sanitize_key((string) $value);
+        return array_key_exists($candidate, self::supported_frontend_languages()) ? $candidate : 'auto';
+    }
+
+    private static function normalize_frontend_language(string $value): string
+    {
+        return self::sanitize_frontend_language($value);
     }
 
     public static function sanitize_chart_theme($value): string
@@ -1144,6 +1186,12 @@ JSON
             'default' => true,
         ]);
 
+        register_setting($api_group, self::OPTION_FRONTEND_LANGUAGE, [
+            'type' => 'string',
+            'sanitize_callback' => [__CLASS__, 'sanitize_frontend_language'],
+            'default' => 'auto',
+        ]);
+
         register_setting($report_group, self::OPTION_REPORT_DETAIL, [
             'type' => 'string',
             'sanitize_callback' => static function ($value): string {
@@ -1175,6 +1223,30 @@ JSON
             'type' => 'boolean',
             'sanitize_callback' => static fn($v): bool => (bool) $v,
             'default' => true,
+        ]);
+
+        register_setting($report_group, self::OPTION_REPORT_SHOW_BIRTH_CONTEXT, [
+            'type' => 'boolean',
+            'sanitize_callback' => static fn($v): bool => (bool) $v,
+            'default' => true,
+        ]);
+
+        register_setting($report_group, self::OPTION_REPORT_SHOW_PERSONALIZED_NOTES, [
+            'type' => 'boolean',
+            'sanitize_callback' => static fn($v): bool => (bool) $v,
+            'default' => true,
+        ]);
+
+        register_setting($report_group, self::OPTION_REPORT_SHOW_ASPECT_GLYPHS, [
+            'type' => 'boolean',
+            'sanitize_callback' => static fn($v): bool => (bool) $v,
+            'default' => true,
+        ]);
+
+        register_setting($report_group, self::OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION, [
+            'type' => 'boolean',
+            'sanitize_callback' => static fn($v): bool => (bool) $v,
+            'default' => false,
         ]);
 
         register_setting($report_group, self::OPTION_CHART_SHOW_PRINT_BUTTON, [
@@ -1287,6 +1359,10 @@ JSON
         register_setting($style_group, self::OPTION_STYLE_FOCUS_RING_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#2563eb']);
         register_setting($style_group, self::OPTION_STYLE_ASTRO_FONT_SIZE, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 20]);
         register_setting($style_group, self::OPTION_STYLE_ASTRO_FONT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($style_group, self::OPTION_STYLE_MODAL_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#ffffff']);
+        register_setting($style_group, self::OPTION_STYLE_MODAL_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($style_group, self::OPTION_STYLE_MODAL_BORDER_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
+        register_setting($style_group, self::OPTION_STYLE_MODAL_ACCENT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#d97706']);
 
         register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_BG_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#ffffff']);
         register_setting($ephemeris_group, self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#111111']);
@@ -1335,6 +1411,14 @@ JSON
         );
 
         add_settings_field(
+            self::OPTION_FRONTEND_LANGUAGE,
+            __('Frontend language', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_frontend_language_field'],
+            'openastro-settings',
+            'openastro_settings_main'
+        );
+
+        add_settings_field(
             self::OPTION_REPORT_DETAIL,
             __('Report detail level', 'astrology-suite-freeastroapi'),
             [__CLASS__, 'render_report_detail_field'],
@@ -1362,6 +1446,38 @@ JSON
             self::OPTION_REPORT_SHOW_ANGLES,
             __('Show ASC/MC sections', 'astrology-suite-freeastroapi'),
             [__CLASS__, 'render_report_show_angles_field'],
+            'openastro-settings',
+            'openastro_report_settings'
+        );
+
+        add_settings_field(
+            self::OPTION_REPORT_SHOW_BIRTH_CONTEXT,
+            __('Show birth context', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_report_show_birth_context_field'],
+            'openastro-settings',
+            'openastro_report_settings'
+        );
+
+        add_settings_field(
+            self::OPTION_REPORT_SHOW_PERSONALIZED_NOTES,
+            __('Show planet aspect links', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_report_show_personalized_notes_field'],
+            'openastro-settings',
+            'openastro_report_settings'
+        );
+
+        add_settings_field(
+            self::OPTION_REPORT_SHOW_ASPECT_GLYPHS,
+            __('Show aspect glyphs', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_report_show_aspect_glyphs_field'],
+            'openastro-settings',
+            'openastro_report_settings'
+        );
+
+        add_settings_field(
+            self::OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION,
+            __('Show thematic interpretation', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_report_show_thematic_interpretation_field'],
             'openastro-settings',
             'openastro_report_settings'
         );
@@ -1441,6 +1557,11 @@ JSON
         add_settings_field(self::OPTION_STYLE_FOCUS_RING_COLOR, __('Focus ring color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_focus_ring_color_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_ASTRO_FONT_SIZE, __('Glyph font size (px)', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_astro_font_size_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_ASTRO_FONT_COLOR, __('Glyph font color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_astro_font_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_style_group_modal', __('Aspect modal', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_group_modal'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_MODAL_BG_COLOR, __('Modal background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_modal_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_MODAL_TEXT_COLOR, __('Modal text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_modal_text_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_MODAL_BORDER_COLOR, __('Modal border color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_modal_border_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_STYLE_MODAL_ACCENT_COLOR, __('Modal link/accent color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_modal_accent_color_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field('openastro_ephemeris_preview', __('Preview', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_style_preview_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
         add_settings_field(self::OPTION_EPHEMERIS_TABLE_BG_COLOR, __('Table background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_bg_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
         add_settings_field(self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR, __('Table text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_text_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
@@ -1547,6 +1668,18 @@ JSON
         echo '<p class="description">' . esc_html__('Public requests still go through this WordPress site, use the saved API key server-side, and are rate-limited per visitor. Turn this off to restrict calculations to logged-in users who can edit posts.', 'astrology-suite-freeastroapi') . '</p>';
     }
 
+    public static function render_frontend_language_field(): void
+    {
+        $value = self::normalize_frontend_language((string) self::get_option_value(self::OPTION_FRONTEND_LANGUAGE, 'auto'));
+        echo '<select name="' . esc_attr(self::OPTION_FRONTEND_LANGUAGE) . '">';
+        foreach (self::supported_frontend_languages() as $code => $label) {
+            echo '<option value="' . esc_attr($code) . '" ' . selected($value, $code, false) . '>' . esc_html($label) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">' . esc_html__('Localizes the widget interface, labels, buttons, validation messages, and report section headings only. FreeAstroAPI interpretation blocks are displayed exactly as the API returns them; unsupported interpretation languages are not requested.', 'astrology-suite-freeastroapi') . '</p>';
+        echo '<p class="description">' . esc_html__('Shortcodes can override this per widget with language="vi", language="fr", language="es", language="de", or language="pt".', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
     public static function add_privacy_policy_content(): void
     {
         if (!function_exists('wp_add_privacy_policy_content')) {
@@ -1600,6 +1733,36 @@ JSON
     {
         $value = (bool) self::get_option_value(self::OPTION_REPORT_SHOW_ANGLES, true);
         echo '<label><input type="checkbox" name="' . esc_attr(self::OPTION_REPORT_SHOW_ANGLES) . '" value="1" ' . checked($value, true, false) . ' /> ' . esc_html__('Include Ascendant and Midheaven sections.', 'astrology-suite-freeastroapi') . '</label>';
+    }
+
+    public static function render_report_show_birth_context_field(): void
+    {
+        $value = (bool) self::get_option_value(self::OPTION_REPORT_SHOW_BIRTH_CONTEXT, true);
+        echo '<input type="hidden" name="' . esc_attr(self::OPTION_REPORT_SHOW_BIRTH_CONTEXT) . '" value="0" />';
+        echo '<label><input type="checkbox" name="' . esc_attr(self::OPTION_REPORT_SHOW_BIRTH_CONTEXT) . '" value="1" ' . checked($value, true, false) . ' /> ' . esc_html__('Add a birth context card using the submitted date, 24-hour time, city, timezone, and coordinates.', 'astrology-suite-freeastroapi') . '</label>';
+    }
+
+    public static function render_report_show_personalized_notes_field(): void
+    {
+        $value = (bool) self::get_option_value(self::OPTION_REPORT_SHOW_PERSONALIZED_NOTES, true);
+        echo '<input type="hidden" name="' . esc_attr(self::OPTION_REPORT_SHOW_PERSONALIZED_NOTES) . '" value="0" />';
+        echo '<label><input type="checkbox" name="' . esc_attr(self::OPTION_REPORT_SHOW_PERSONALIZED_NOTES) . '" value="1" ' . checked($value, true, false) . ' /> ' . esc_html__('Add clickable aspect links inside each planet interpretation. The modal displays the matching aspect interpretation block returned by FreeAstroAPI.', 'astrology-suite-freeastroapi') . '</label>';
+        echo '<p class="description">' . esc_html__('This uses the normal interpretation blocks only. It does not call or display the psychological report, and it does not request unsupported API interpretation languages.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_report_show_aspect_glyphs_field(): void
+    {
+        $value = (bool) self::get_option_value(self::OPTION_REPORT_SHOW_ASPECT_GLYPHS, true);
+        echo '<input type="hidden" name="' . esc_attr(self::OPTION_REPORT_SHOW_ASPECT_GLYPHS) . '" value="0" />';
+        echo '<label><input type="checkbox" name="' . esc_attr(self::OPTION_REPORT_SHOW_ASPECT_GLYPHS) . '" value="1" ' . checked($value, true, false) . ' /> ' . esc_html__('Display astrology glyphs in planet aspect lists and the All Aspect Dynamics table.', 'astrology-suite-freeastroapi') . '</label>';
+    }
+
+    public static function render_report_show_thematic_interpretation_field(): void
+    {
+        $value = (bool) self::get_option_value(self::OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION, false);
+        echo '<input type="hidden" name="' . esc_attr(self::OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION) . '" value="0" />';
+        echo '<label><input type="checkbox" name="' . esc_attr(self::OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION) . '" value="1" ' . checked($value, true, false) . ' /> ' . esc_html__('Add a Thematic Interpretation section grouped by FreeAstroAPI interpretation themes.', 'astrology-suite-freeastroapi') . '</label>';
+        echo '<p class="description">' . esc_html__('This reuses the normal interpretation response grouped by theme. It does not call the psychological report endpoint.', 'astrology-suite-freeastroapi') . '</p>';
     }
 
     public static function render_report_show_tables_field(): void
@@ -2478,6 +2641,12 @@ JSON
         echo '<p><strong>' . esc_html__('Labels and focus states', 'astrology-suite-freeastroapi') . '</strong></p>';
     }
 
+    public static function render_style_group_modal(): void
+    {
+        echo '<p><strong>' . esc_html__('Aspect interpretation modal', 'astrology-suite-freeastroapi') . '</strong></p>';
+        echo '<p class="description">' . esc_html__('Controls the small modal opened when a visitor clicks an aspect link inside a planet interpretation.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
     public static function render_style_input_border_radius_field(): void
     {
         $value = (int) self::get_option_value(self::OPTION_STYLE_INPUT_BORDER_RADIUS, 6);
@@ -2567,6 +2736,30 @@ JSON
     {
         $value = (string) self::get_option_value(self::OPTION_STYLE_ASTRO_FONT_COLOR, '#111111');
         echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_ASTRO_FONT_COLOR) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_style_modal_bg_color_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_STYLE_MODAL_BG_COLOR, '#ffffff');
+        echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_MODAL_BG_COLOR) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_style_modal_text_color_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_STYLE_MODAL_TEXT_COLOR, '#111111');
+        echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_MODAL_TEXT_COLOR) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_style_modal_border_color_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_STYLE_MODAL_BORDER_COLOR, '#111111');
+        echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_MODAL_BORDER_COLOR) . '" value="' . esc_attr($value) . '" />';
+    }
+
+    public static function render_style_modal_accent_color_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_STYLE_MODAL_ACCENT_COLOR, '#d97706');
+        echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_MODAL_ACCENT_COLOR) . '" value="' . esc_attr($value) . '" />';
     }
 
     private static function ephemeris_style_defaults(): array
@@ -2899,7 +3092,7 @@ JSON
                     <li><?php esc_html_e('Search for "Astrology Suite" in the block inserter.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Choose a block, configure any sidebar options, and publish the page.', 'astrology-suite-freeastroapi'); ?></li>
                 </ol>
-                <p><?php esc_html_e('Natal and simple-sign blocks render birth-data forms with city autocomplete, a local "Past inputs..." selector, and a Generate button. The ephemeris block renders month controls, body filters, optional city autocomplete for local points, and a monthly table.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Natal blocks render birth-data forms with city autocomplete, explicit 24-hour time controls, an "I don\'t know my birth time" option, a local "Past inputs..." selector, and a Generate button. When birth time is unknown, chart/report requests send time_known:false and omit angle/house-dependent sections when the API omits them. The ephemeris block renders month controls, body filters, optional city autocomplete for local points, and a monthly table.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <h3><?php esc_html_e('Available Blocks', 'astrology-suite-freeastroapi'); ?></h3>
                 <table class="widefat striped" style="max-width: 920px;">
@@ -2951,15 +3144,15 @@ JSON
 
                 <h3><?php esc_html_e('Shortcode Examples', 'astrology-suite-freeastroapi'); ?></h3>
                 <p><?php esc_html_e('Use shortcodes in classic editor content, shortcode blocks, widgets, or template areas that run WordPress shortcodes.', 'astrology-suite-freeastroapi'); ?></p>
-                <pre><code><?php echo esc_html("[astrology_suite mode=\"chart-report\"]\n[astrology_suite_chart_only]\n[astrology_suite_report_only]\n[astrology_suite_chart_report]\n[astrology_suite_simple_sign_sun include_interpretation=\"true\" interpretation_style=\"improved\"]\n[astrology_suite_simple_sign_moon include_interpretation=\"false\"]\n[astrology_suite_simple_sign_rising include_interpretation=\"true\" interpretation_style=\"poetic\"]\n[astrology_suite_simple_sign_midheaven]\n[astrology_suite_ephemeris]"); ?></code></pre>
+                <pre><code><?php echo esc_html("[astrology_suite mode=\"chart-report\"]\n[astrology_suite mode=\"chart-report\" language=\"vi\"]\n[astrology_suite_chart_only]\n[astrology_suite_report_only]\n[astrology_suite_chart_report]\n[astrology_suite_simple_sign_sun include_interpretation=\"true\" interpretation_style=\"improved\"]\n[astrology_suite_simple_sign_moon include_interpretation=\"false\"]\n[astrology_suite_simple_sign_rising include_interpretation=\"true\" interpretation_style=\"poetic\"]\n[astrology_suite_simple_sign_midheaven]\n[astrology_suite_ephemeris]"); ?></code></pre>
                 <p><?php esc_html_e('Supported shortcode modes are chart-only, report-only, chart-report, simple-sign-sun, simple-sign-moon, simple-sign-rising, simple-sign-midheaven, and ephemeris.', 'astrology-suite-freeastroapi'); ?></p>
-                <p><?php esc_html_e('Shortcode attributes: mode, include_interpretation, interpretation_style, and class. Legacy openastro, openastro_*, freeastro, and freeastro_* shortcode aliases are also registered.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Shortcode attributes: mode, include_interpretation, interpretation_style, language/lang, and class. Supported language values are auto, en, vi, fr, es, de, and pt. The language attribute localizes plugin UI text only; FreeAstroAPI interpretation blocks are displayed in the language returned by the API. Legacy openastro, openastro_*, freeastro, and freeastro_* shortcode aliases are also registered.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <hr />
                 <h2><?php esc_html_e('Settings Tabs', 'astrology-suite-freeastroapi'); ?></h2>
                 <ul>
-                    <li><?php esc_html_e('API stores the FreeAstroAPI key used for server-to-server requests and controls whether public visitors can use calculation forms.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><?php esc_html_e('Report controls interpretation length, report limits, angle sections, chart print button, and tables.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('API stores the FreeAstroAPI key used for server-to-server requests, controls whether public visitors can use calculation forms, and sets the frontend widget language.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Report controls interpretation length, report limits, angle sections, birth context, planet aspect links, aspect glyphs, thematic interpretation, chart print button, and tables.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Custom Chart controls SVG/PNG chart theme bodies, FreeAstroAPI-generated preview cards, and optional advanced chart_config JSON.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Objects controls which extra points are requested and rendered in chart/report modes.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Style controls container border/background transparency, Past inputs visibility/colors, input, button, label, focus, and glyph colors/radii.', 'astrology-suite-freeastroapi'); ?></li>
@@ -3686,7 +3879,18 @@ Ephemeris Elements:
             return new \WP_Error('invalid_payload', 'Payload must be an object.', ['status' => 400]);
         }
 
-        $required = ['year', 'month', 'day', 'hour', 'minute', 'city', 'lat', 'lng', 'tz_str'];
+        $time_known = true;
+        if (array_key_exists('time_known', $payload)) {
+            $parsed_time_known = filter_var($payload['time_known'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $time_known = $parsed_time_known === null ? true : $parsed_time_known;
+        }
+
+        $required = ['year', 'month', 'day', 'city', 'lat', 'lng', 'tz_str'];
+        if ($time_known) {
+            $required[] = 'hour';
+            $required[] = 'minute';
+        }
+
         foreach ($required as $field) {
             if (!isset($payload[$field])) {
                 return new \WP_Error('invalid_payload', "Missing {$field}.", ['status' => 400]);
@@ -3696,16 +3900,20 @@ Ephemeris Elements:
         $payload['year'] = (int) $payload['year'];
         $payload['month'] = (int) $payload['month'];
         $payload['day'] = (int) $payload['day'];
-        $payload['hour'] = (int) $payload['hour'];
-        $payload['minute'] = (int) $payload['minute'];
+        if ($time_known) {
+            $payload['hour'] = (int) $payload['hour'];
+            $payload['minute'] = (int) $payload['minute'];
+        } else {
+            unset($payload['hour'], $payload['minute']);
+        }
         $payload['lat'] = (float) $payload['lat'];
         $payload['lng'] = (float) $payload['lng'];
 
         if ($payload['year'] < 1800 || $payload['year'] > 2100) return new \WP_Error('invalid_payload', 'Year out of range.', ['status' => 400]);
         if ($payload['month'] < 1 || $payload['month'] > 12) return new \WP_Error('invalid_payload', 'Month out of range.', ['status' => 400]);
         if ($payload['day'] < 1 || $payload['day'] > 31) return new \WP_Error('invalid_payload', 'Day out of range.', ['status' => 400]);
-        if ($payload['hour'] < 0 || $payload['hour'] > 23) return new \WP_Error('invalid_payload', 'Hour out of range.', ['status' => 400]);
-        if ($payload['minute'] < 0 || $payload['minute'] > 59) return new \WP_Error('invalid_payload', 'Minute out of range.', ['status' => 400]);
+        if ($time_known && ($payload['hour'] < 0 || $payload['hour'] > 23)) return new \WP_Error('invalid_payload', 'Hour out of range.', ['status' => 400]);
+        if ($time_known && ($payload['minute'] < 0 || $payload['minute'] > 59)) return new \WP_Error('invalid_payload', 'Minute out of range.', ['status' => 400]);
         if ($payload['lat'] < -90 || $payload['lat'] > 90 || $payload['lng'] < -180 || $payload['lng'] > 180) {
             return new \WP_Error('invalid_payload', 'Invalid lat/lng.', ['status' => 400]);
         }
@@ -3713,6 +3921,7 @@ Ephemeris Elements:
         $payload['name'] = isset($payload['name']) ? sanitize_text_field((string) $payload['name']) : '';
         $payload['city'] = sanitize_text_field((string) $payload['city']);
         $payload['tz_str'] = sanitize_text_field((string) $payload['tz_str']);
+        $payload['time_known'] = $time_known;
         $payload['house_system'] = 'placidus';
         $payload['zodiac_type'] = 'tropical';
         $payload['include_speed'] = true;
@@ -3933,6 +4142,8 @@ Ephemeris Elements:
             'includeinterpretation' => '',
             'interpretation_style' => '',
             'interpretationstyle' => '',
+            'language' => '',
+            'lang' => '',
             'class' => '',
         ];
         $parsed = shortcode_atts($defaults, $raw_atts, $tag);
@@ -3943,12 +4154,14 @@ Ephemeris Elements:
         $interpretation_style = $parsed['interpretation_style'] !== ''
             ? $parsed['interpretation_style']
             : $parsed['interpretationstyle'];
+        $language = $parsed['language'] !== '' ? $parsed['language'] : $parsed['lang'];
 
         self::enqueue_widget_assets();
 
         return self::render_widget_container($mode, [
             'include_interpretation' => self::shortcode_bool($include_interpretation, true),
             'interpretation_style' => self::normalize_interpretation_style((string) $interpretation_style),
+            'language' => self::normalize_frontend_language((string) $language),
             'class' => (string) $parsed['class'],
         ]);
     }
@@ -3976,6 +4189,7 @@ Ephemeris Elements:
         return [
             'root' => esc_url_raw(rest_url(self::REST_NAMESPACE . '/')),
             'nonce' => wp_create_nonce('wp_rest'),
+            'language' => self::normalize_frontend_language((string) self::get_option_value(self::OPTION_FRONTEND_LANGUAGE, 'auto')),
             'permissions' => [
                 'canCalculate' => self::current_request_can_calculate(),
                 'calculationMessage' => self::frontend_access_message(),
@@ -3986,6 +4200,10 @@ Ephemeris Elements:
                 'maxAspects' => (int) self::get_option_value(self::OPTION_REPORT_MAX_ASPECTS, 40),
                 'showTables' => (bool) self::get_option_value(self::OPTION_REPORT_SHOW_TABLES, true),
                 'showAngles' => (bool) self::get_option_value(self::OPTION_REPORT_SHOW_ANGLES, true),
+                'showBirthContext' => (bool) self::get_option_value(self::OPTION_REPORT_SHOW_BIRTH_CONTEXT, true),
+                'showAspectLinks' => (bool) self::get_option_value(self::OPTION_REPORT_SHOW_PERSONALIZED_NOTES, true),
+                'showAspectGlyphs' => (bool) self::get_option_value(self::OPTION_REPORT_SHOW_ASPECT_GLYPHS, true),
+                'showThematicInterpretation' => (bool) self::get_option_value(self::OPTION_REPORT_SHOW_THEMATIC_INTERPRETATION, false),
                 'showPrintButton' => (bool) self::get_option_value(self::OPTION_CHART_SHOW_PRINT_BUTTON, true),
             ],
             'objects' => [
@@ -4020,6 +4238,10 @@ Ephemeris Elements:
                 'focusRingColor' => (string) self::get_option_value(self::OPTION_STYLE_FOCUS_RING_COLOR, '#2563eb'),
                 'astroFontSize' => (int) self::get_option_value(self::OPTION_STYLE_ASTRO_FONT_SIZE, 20),
                 'astroFontColor' => (string) self::get_option_value(self::OPTION_STYLE_ASTRO_FONT_COLOR, '#111111'),
+                'modalBgColor' => (string) self::get_option_value(self::OPTION_STYLE_MODAL_BG_COLOR, '#ffffff'),
+                'modalTextColor' => (string) self::get_option_value(self::OPTION_STYLE_MODAL_TEXT_COLOR, '#111111'),
+                'modalBorderColor' => (string) self::get_option_value(self::OPTION_STYLE_MODAL_BORDER_COLOR, '#111111'),
+                'modalAccentColor' => (string) self::get_option_value(self::OPTION_STYLE_MODAL_ACCENT_COLOR, '#d97706'),
             ],
             'ephemerisStyle' => [
                 'tableBgColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_TABLE_BG_COLOR, '#ffffff'),
@@ -4227,15 +4449,17 @@ Ephemeris Elements:
         $mode = self::normalize_widget_mode($mode);
         $include_interpretation = !isset($attrs['include_interpretation']) || (bool) $attrs['include_interpretation'];
         $interpretation_style = self::normalize_interpretation_style((string) ($attrs['interpretation_style'] ?? 'improved'));
+        $language = self::normalize_frontend_language((string) ($attrs['language'] ?? 'auto'));
         $extra_class = self::sanitize_class_list((string) ($attrs['class'] ?? ''));
         $classes = trim('wp-block-astrology-suite-widget' . ($extra_class !== '' ? ' ' . $extra_class : ''));
 
         return sprintf(
-            '<div class="%1$s" data-astrology-suite-widget="1" data-mode="%2$s" data-include-interpretation="%3$s" data-interpretation-style="%4$s"></div>',
+            '<div class="%1$s" data-astrology-suite-widget="1" data-mode="%2$s" data-include-interpretation="%3$s" data-interpretation-style="%4$s" data-language="%5$s"></div>',
             esc_attr($classes),
             esc_attr($mode),
             $include_interpretation ? '1' : '0',
-            esc_attr($interpretation_style)
+            esc_attr($interpretation_style),
+            esc_attr($language)
         );
     }
 }
