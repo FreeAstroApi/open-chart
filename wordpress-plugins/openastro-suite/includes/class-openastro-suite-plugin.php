@@ -3148,6 +3148,110 @@ JSON
                 <p><?php esc_html_e('Supported shortcode modes are chart-only, report-only, chart-report, simple-sign-sun, simple-sign-moon, simple-sign-rising, simple-sign-midheaven, and ephemeris.', 'astrology-suite-freeastroapi'); ?></p>
                 <p><?php esc_html_e('Shortcode attributes: mode, include_interpretation, interpretation_style, language/lang, and class. Supported language values are auto, en, vi, fr, es, de, and pt. The language attribute localizes plugin UI text only; FreeAstroAPI interpretation blocks are displayed in the language returned by the API. Legacy openastro, openastro_*, freeastro, and freeastro_* shortcode aliases are also registered.', 'astrology-suite-freeastroapi'); ?></p>
 
+                <h3><?php esc_html_e('All Available Shortcodes', 'astrology-suite-freeastroapi'); ?></h3>
+                <p><?php esc_html_e('Use the Astrology Suite shortcodes for new pages. The OpenAstro and FreeAstro names are legacy aliases kept for older content.', 'astrology-suite-freeastroapi'); ?></p>
+                <?php
+                $shortcode_rows = [
+                    [
+                        'mode' => 'chart-only',
+                        'recommended' => '[astrology_suite mode="chart-only"]',
+                        'named' => '[astrology_suite_chart_only]',
+                        'openastro' => ['[openastro mode="chart-only"]', '[openastro_chart_only]'],
+                        'freeastro' => ['[freeastro mode="chart-only"]', '[freeastro_chart_only]'],
+                        'output' => __('Input form plus natal wheel chart. Report text is not shown.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'report-only',
+                        'recommended' => '[astrology_suite mode="report-only"]',
+                        'named' => '[astrology_suite_report_only]',
+                        'openastro' => ['[openastro mode="report-only"]', '[openastro_report_only]'],
+                        'freeastro' => ['[freeastro mode="report-only"]', '[freeastro_report_only]'],
+                        'output' => __('Input form plus interpretation report. Natal wheel chart is not shown.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'chart-report',
+                        'recommended' => '[astrology_suite mode="chart-report"]',
+                        'named' => '[astrology_suite_chart_report]',
+                        'openastro' => ['[openastro mode="chart-report"]', '[openastro_chart_report]'],
+                        'freeastro' => ['[freeastro mode="chart-report"]', '[freeastro_chart_report]'],
+                        'output' => __('Input form plus natal wheel chart and interpretation report.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'simple-sign-sun',
+                        'recommended' => '[astrology_suite mode="simple-sign-sun"]',
+                        'named' => '[astrology_suite_simple_sign_sun]',
+                        'openastro' => ['[openastro mode="simple-sign-sun"]', '[openastro_simple_sign_sun]'],
+                        'freeastro' => ['[freeastro mode="simple-sign-sun"]', '[freeastro_simple_sign_sun]'],
+                        'output' => __('Input form plus Sun sign result.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'simple-sign-moon',
+                        'recommended' => '[astrology_suite mode="simple-sign-moon"]',
+                        'named' => '[astrology_suite_simple_sign_moon]',
+                        'openastro' => ['[openastro mode="simple-sign-moon"]', '[openastro_simple_sign_moon]'],
+                        'freeastro' => ['[freeastro mode="simple-sign-moon"]', '[freeastro_simple_sign_moon]'],
+                        'output' => __('Input form plus Moon sign result.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'simple-sign-rising',
+                        'recommended' => '[astrology_suite mode="simple-sign-rising"]',
+                        'named' => '[astrology_suite_simple_sign_rising]',
+                        'openastro' => ['[openastro mode="simple-sign-rising"]', '[openastro_simple_sign_rising]'],
+                        'freeastro' => ['[freeastro mode="simple-sign-rising"]', '[freeastro_simple_sign_rising]'],
+                        'output' => __('Input form plus Rising sign result.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'simple-sign-midheaven',
+                        'recommended' => '[astrology_suite mode="simple-sign-midheaven"]',
+                        'named' => '[astrology_suite_simple_sign_midheaven]',
+                        'openastro' => ['[openastro mode="simple-sign-midheaven"]', '[openastro_simple_sign_midheaven]'],
+                        'freeastro' => ['[freeastro mode="simple-sign-midheaven"]', '[freeastro_simple_sign_midheaven]'],
+                        'output' => __('Input form plus Midheaven sign result.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'ephemeris',
+                        'recommended' => '[astrology_suite mode="ephemeris"]',
+                        'named' => '[astrology_suite_ephemeris]',
+                        'openastro' => ['[openastro mode="ephemeris"]', '[openastro_ephemeris]'],
+                        'freeastro' => ['[freeastro mode="ephemeris"]', '[freeastro_ephemeris]'],
+                        'output' => __('Monthly ephemeris table with selectable bodies, tropical/sidereal mode, optional city, and CSV download.', 'astrology-suite-freeastroapi'),
+                    ],
+                ];
+                ?>
+                <table class="widefat striped" style="max-width: 1180px;">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e('Mode', 'astrology-suite-freeastroapi'); ?></th>
+                            <th><?php esc_html_e('Recommended', 'astrology-suite-freeastroapi'); ?></th>
+                            <th><?php esc_html_e('Named shortcode', 'astrology-suite-freeastroapi'); ?></th>
+                            <th><?php esc_html_e('Legacy OpenAstro aliases', 'astrology-suite-freeastroapi'); ?></th>
+                            <th><?php esc_html_e('Legacy FreeAstro aliases', 'astrology-suite-freeastroapi'); ?></th>
+                            <th><?php esc_html_e('Front-end output', 'astrology-suite-freeastroapi'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($shortcode_rows as $shortcode_row) : ?>
+                            <tr>
+                                <td><code><?php echo esc_html($shortcode_row['mode']); ?></code></td>
+                                <td><code><?php echo esc_html($shortcode_row['recommended']); ?></code></td>
+                                <td><code><?php echo esc_html($shortcode_row['named']); ?></code></td>
+                                <td>
+                                    <?php foreach ($shortcode_row['openastro'] as $alias) : ?>
+                                        <code><?php echo esc_html($alias); ?></code><br />
+                                    <?php endforeach; ?>
+                                </td>
+                                <td>
+                                    <?php foreach ($shortcode_row['freeastro'] as $alias) : ?>
+                                        <code><?php echo esc_html($alias); ?></code><br />
+                                    <?php endforeach; ?>
+                                </td>
+                                <td><?php echo esc_html($shortcode_row['output']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <p><?php esc_html_e('Optional attributes can be added to supported shortcodes, for example language="vi", class="my-widget", include_interpretation="true", or interpretation_style="poetic".', 'astrology-suite-freeastroapi'); ?></p>
+
                 <hr />
                 <h2><?php esc_html_e('Settings Tabs', 'astrology-suite-freeastroapi'); ?></h2>
                 <ul>
