@@ -107,6 +107,20 @@
     { id: 'part_of_fortune', api: 'Part of Fortune', label: 'Part of Fortune', glyph: '⊗', group: 'Coordinate-based points', local: true }
   ];
   var EPHEMERIS_DEFAULT_BODY_IDS = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'true_node', 'chiron'];
+  var ZODIAC_SIGNS = [
+    { id: 'aries', label: 'Aries' },
+    { id: 'taurus', label: 'Taurus' },
+    { id: 'gemini', label: 'Gemini' },
+    { id: 'cancer', label: 'Cancer' },
+    { id: 'leo', label: 'Leo' },
+    { id: 'virgo', label: 'Virgo' },
+    { id: 'libra', label: 'Libra' },
+    { id: 'scorpio', label: 'Scorpio' },
+    { id: 'sagittarius', label: 'Sagittarius' },
+    { id: 'capricorn', label: 'Capricorn' },
+    { id: 'aquarius', label: 'Aquarius' },
+    { id: 'pisces', label: 'Pisces' }
+  ];
   var HISTORY_KEY = 'openastro_history_v1';
   var HISTORY_LIMIT = 20;
   var TRANSLATIONS = {
@@ -452,11 +466,14 @@
   }
 
   function getCfg() {
-    var cfg = window.AstrologySuiteBlocks || window.OpenAstroBlocks || { root: '/wp-json/astrology-suite/v1/', nonce: '', language: 'auto', permissions: {}, report: {}, style: {}, ephemerisStyle: {}, typography: {} };
+    var cfg = window.AstrologySuiteBlocks || window.OpenAstroBlocks || { root: '/wp-json/astrology-suite/v1/', nonce: '', language: 'auto', permissions: {}, report: {}, style: {}, ephemerisStyle: {}, horoscope: {}, horoscopeStyle: {}, botStyle: {}, typography: {} };
     cfg.permissions = cfg.permissions || {};
     cfg.report = cfg.report || {};
     cfg.style = cfg.style || {};
     cfg.ephemerisStyle = cfg.ephemerisStyle || {};
+    cfg.horoscope = cfg.horoscope || {};
+    cfg.horoscopeStyle = cfg.horoscopeStyle || {};
+    cfg.botStyle = cfg.botStyle || {};
     cfg.typography = cfg.typography || {};
     cfg.language = cfg.language || 'auto';
     cfg.permissions.canCalculate = !!cfg.permissions.canCalculate;
@@ -509,6 +526,34 @@
     cfg.ephemerisStyle.retrogradeColor = cfg.ephemerisStyle.retrogradeColor || '#b91c1c';
     cfg.ephemerisStyle.ingressColor = cfg.ephemerisStyle.ingressColor || '#1d4ed8';
     cfg.ephemerisStyle.stationColor = cfg.ephemerisStyle.stationColor || '#a16207';
+    cfg.horoscope.showTheme = cfg.horoscope.showTheme !== false;
+    cfg.horoscope.showSummary = cfg.horoscope.showSummary !== false;
+    cfg.horoscope.showScores = cfg.horoscope.showScores !== false;
+    cfg.horoscope.showScoreFactors = cfg.horoscope.showScoreFactors !== false;
+    cfg.horoscope.showPersonalContext = cfg.horoscope.showPersonalContext !== false;
+    cfg.horoscope.showLucky = cfg.horoscope.showLucky !== false;
+    cfg.horoscope.showGuidance = cfg.horoscope.showGuidance !== false;
+    cfg.horoscope.showAstro = cfg.horoscope.showAstro !== false;
+    cfg.horoscopeStyle.cardBgColor = cfg.horoscopeStyle.cardBgColor || '#ffffff';
+    cfg.horoscopeStyle.cardTextColor = cfg.horoscopeStyle.cardTextColor || '#111111';
+    cfg.horoscopeStyle.cardBorderColor = cfg.horoscopeStyle.cardBorderColor || '#e5e7eb';
+    cfg.horoscopeStyle.themeBgColor = cfg.horoscopeStyle.themeBgColor || '#111827';
+    cfg.horoscopeStyle.themeTextColor = cfg.horoscopeStyle.themeTextColor || '#ffffff';
+    cfg.horoscopeStyle.chipBgColor = cfg.horoscopeStyle.chipBgColor || '#f9fafb';
+    cfg.horoscopeStyle.chipTextColor = cfg.horoscopeStyle.chipTextColor || '#111111';
+    cfg.horoscopeStyle.chipBorderColor = cfg.horoscopeStyle.chipBorderColor || '#e5e7eb';
+    cfg.horoscopeStyle.tileBgColor = cfg.horoscopeStyle.tileBgColor || '#f9fafb';
+    cfg.horoscopeStyle.tileTextColor = cfg.horoscopeStyle.tileTextColor || '#111111';
+    cfg.horoscopeStyle.tileBorderColor = cfg.horoscopeStyle.tileBorderColor || '#e5e7eb';
+    cfg.horoscopeStyle.accentColor = cfg.horoscopeStyle.accentColor || '#2563eb';
+    cfg.botStyle.shellBgColor = cfg.botStyle.shellBgColor || '#101014';
+    cfg.botStyle.headerBgColor = cfg.botStyle.headerBgColor || '#17231f';
+    cfg.botStyle.screenBgColor = cfg.botStyle.screenBgColor || '#0f1f1b';
+    cfg.botStyle.accentColor = cfg.botStyle.accentColor || '#facc15';
+    cfg.botStyle.userBubbleBgColor = cfg.botStyle.userBubbleBgColor || '#d8f7c5';
+    cfg.botStyle.userBubbleTextColor = cfg.botStyle.userBubbleTextColor || '#142117';
+    cfg.botStyle.assistantBubbleBgColor = cfg.botStyle.assistantBubbleBgColor || '#202c28';
+    cfg.botStyle.assistantBubbleTextColor = cfg.botStyle.assistantBubbleTextColor || '#f1f5f9';
     cfg.typography.h2 = Number(cfg.typography.h2 || 28);
     cfg.typography.h3 = Number(cfg.typography.h3 || 22);
     cfg.typography.h4 = Number(cfg.typography.h4 || 18);
@@ -1162,6 +1207,362 @@
 
   function isEphemerisMode(mode) {
     return mode === 'ephemeris';
+  }
+
+  function isDailyHoroscopeMode(mode) {
+    return mode === 'daily-horoscope';
+  }
+
+  function isPersonalizedHoroscopeMode(mode) {
+    return mode === 'personalized-horoscope';
+  }
+
+  function isAstrologyBotMode(mode) {
+    return mode === 'astrology-bot';
+  }
+
+  function defaultTimezone() {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch (e) {
+      return 'UTC';
+    }
+  }
+
+  function titleForSign(sign) {
+    var normalized = String(sign || '').toLowerCase();
+    for (var i = 0; i < ZODIAC_SIGNS.length; i += 1) {
+      if (ZODIAC_SIGNS[i].id === normalized) {
+        return ZODIAC_SIGNS[i].label;
+      }
+    }
+    return titleCase(normalized || 'Sign');
+  }
+
+  function dateTodayValue() {
+    var now = new Date();
+    return [now.getFullYear(), pad2(now.getMonth() + 1), pad2(now.getDate())].join('-');
+  }
+
+  function horoscopeArray(items) {
+    return Array.isArray(items) ? items.filter(Boolean) : [];
+  }
+
+  function horoscopeLabel(value) {
+    if (!value) {
+      return '';
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'object') {
+      return value.label || value.display || value.name || value.value || value.key || '';
+    }
+    return String(value);
+  }
+
+  function horoscopeFactorReason(reason) {
+    if (!reason) {
+      return '';
+    }
+    if (typeof reason === 'string') {
+      return reason;
+    }
+    if (typeof reason === 'object') {
+      return [reason.main, reason.secondary].filter(Boolean).join(' ');
+    }
+    return String(reason);
+  }
+
+  function horoscopeDateTimeLabel(value) {
+    if (!value) {
+      return '';
+    }
+    var parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    return String(value);
+  }
+
+  function personalizedHoroscopeContextHtml(personal, lang) {
+    if (!personal || typeof personal !== 'object') {
+      return '';
+    }
+    var transits = horoscopeArray(personal.transits_top);
+    var focusAreas = horoscopeArray(personal.focus_areas);
+    var context = personal.day_context && typeof personal.day_context === 'object' ? personal.day_context : {};
+    var exactHits = horoscopeArray(context.exact_hits);
+    var activeWindows = horoscopeArray(context.active_windows);
+    var dominantTopics = horoscopeArray(context.dominant_topics);
+    var nextShift = context.next_shift && typeof context.next_shift === 'object' ? context.next_shift : null;
+    var confidence = personal.confidence_score;
+
+    if (!transits.length && !focusAreas.length && !exactHits.length && !activeWindows.length && !dominantTopics.length && !nextShift && !confidence) {
+      return '';
+    }
+
+    var html = '<div class="' + expandClassNames('openastro-horoscope-personal') + '">';
+    html += '<h4>' + esc(t('Personal timing', lang)) + '</h4>';
+    if (focusAreas.length || confidence) {
+      html += '<div class="' + expandClassNames('openastro-horoscope-personal-meta') + '">';
+      focusAreas.forEach(function (item) {
+        html += '<span>' + esc(horoscopeLabel(item)) + '</span>';
+      });
+      if (confidence) {
+        html += '<span>' + esc(t('Confidence', lang)) + ': ' + esc(confidence) + '</span>';
+      }
+      html += '</div>';
+    }
+
+    if (transits.length) {
+      html += '<section><h5>' + esc(t('Top personal transits', lang)) + '</h5><div class="' + expandClassNames('openastro-horoscope-transits') + '">';
+      transits.slice(0, 5).forEach(function (item) {
+        if (!item || typeof item !== 'object') {
+          return;
+        }
+        var explanation = item.explanation && typeof item.explanation === 'object' ? item.explanation : {};
+        var supporting = horoscopeArray(explanation.supporting);
+        var tags = horoscopeArray(explanation.tags);
+        html += '<article>';
+        html += '<h6>' + esc(item.label || t('Transit', lang)) + '</h6>';
+        var meta = [];
+        if (item.score !== undefined && item.score !== null) meta.push(t('Score', lang) + ' ' + item.score);
+        if (item.exact_at) meta.push(t('Exact', lang) + ' ' + horoscopeDateTimeLabel(item.exact_at));
+        if (meta.length) html += '<p class="' + expandClassNames('openastro-horoscope-transit-meta') + '">' + esc(meta.join(' · ')) + '</p>';
+        if (explanation.main) html += '<p>' + esc(explanation.main) + '</p>';
+        if (supporting.length) {
+          html += '<ul>' + supporting.map(function (support) { return '<li>' + esc(horoscopeLabel(support)) + '</li>'; }).join('') + '</ul>';
+        }
+        if (tags.length) {
+          html += '<div class="' + expandClassNames('openastro-horoscope-keywords') + '">' + tags.slice(0, 6).map(function (tag) { return '<span>' + esc(horoscopeLabel(tag)) + '</span>'; }).join('') + '</div>';
+        }
+        html += '</article>';
+      });
+      html += '</div></section>';
+    }
+
+    if (nextShift || exactHits.length || activeWindows.length || dominantTopics.length) {
+      html += '<section class="' + expandClassNames('openastro-horoscope-timing') + '"><h5>' + esc(t('Timing context', lang)) + '</h5>';
+      if (nextShift) {
+        html += '<p><strong>' + esc(t('Next shift', lang)) + ':</strong> ' + esc([nextShift.label, horoscopeDateTimeLabel(nextShift.timestamp)].filter(Boolean).join(' · ')) + '</p>';
+      }
+      if (exactHits.length) {
+        html += '<div><h6>' + esc(t('Exact hits', lang)) + '</h6><ul>' + exactHits.slice(0, 5).map(function (hit) {
+          return '<li>' + esc([horoscopeLabel(hit), horoscopeDateTimeLabel(hit && hit.timestamp)].filter(Boolean).join(' · ')) + '</li>';
+        }).join('') + '</ul></div>';
+      }
+      if (activeWindows.length) {
+        html += '<div><h6>' + esc(t('Active windows', lang)) + '</h6><ul>' + activeWindows.slice(0, 4).map(function (windowItem) {
+          return '<li>' + esc([horoscopeLabel(windowItem), horoscopeDateTimeLabel(windowItem && windowItem.start), horoscopeDateTimeLabel(windowItem && windowItem.end)].filter(Boolean).join(' · ')) + '</li>';
+        }).join('') + '</ul></div>';
+      }
+      if (dominantTopics.length) {
+        html += '<div><h6>' + esc(t('Dominant topics', lang)) + '</h6><ul>' + dominantTopics.slice(0, 4).map(function (topic) {
+          return '<li>' + esc([topic && topic.title, topic && topic.category].filter(Boolean).join(' · ')) + '</li>';
+        }).join('') + '</ul></div>';
+      }
+      html += '</section>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function dailyHoroscopeHtml(response, lang, cfg) {
+    var data = response && response.data ? response.data : (response || {});
+    var horoscopeCfg = cfg && cfg.horoscope ? cfg.horoscope : {};
+    var content = data.content && typeof data.content === 'object' ? data.content : {};
+    var forecast = data.forecast && typeof data.forecast === 'object' ? data.forecast : {};
+    var lucky = data.lucky && typeof data.lucky === 'object' ? data.lucky : {};
+    var astro = data.astro && typeof data.astro === 'object' ? data.astro : {};
+    var personal = data.personal && typeof data.personal === 'object' ? data.personal : null;
+    var sign = data.sign || '';
+    var signLabel = titleForSign(sign);
+    var dateLabel = data.date || (response && response.meta && response.meta.settings && response.meta.settings.date_resolved) || '';
+    var title = signLabel + (dateLabel ? ' - ' + dateLabel : '');
+    var summary = content.text || content.summary || content.body || content.overview || forecast.summary || forecast.text || forecast.body || forecast.overview || data.summary || data.text || '';
+    var theme = horoscopeLabel(content.theme || forecast.theme || data.theme);
+    var keywords = horoscopeArray(content.keywords || forecast.keywords || data.keywords);
+    var scores = data.scores && typeof data.scores === 'object' ? data.scores : {};
+    var scoreFactors = horoscopeArray(data.score_factors);
+    var highlights = horoscopeArray(astro.highlights);
+    var doItems = horoscopeArray(content.do).concat(horoscopeArray(forecast.do));
+    var dontItems = horoscopeArray(content.dont).concat(horoscopeArray(forecast.dont));
+    var insights = horoscopeArray(content.supporting_insights).concat(horoscopeArray(forecast.supporting_insights));
+    var luckyTime = lucky.time || lucky.time_window;
+
+    var html = '<section class="' + expandClassNames('openastro-card openastro-horoscope-card') + '">';
+    html += '<span class="' + expandClassNames('openastro-ephemeris-eyebrow openastro-horoscope-eyebrow') + '">' + esc(t(personal ? 'Personalized Horoscope' : 'Daily Horoscope', lang)) + '</span>';
+    html += '<h3>' + glyphSpan(glyphForSign(sign)) + esc(title) + '</h3>';
+    if (horoscopeCfg.showTheme !== false && (theme || keywords.length)) {
+      html += '<div class="' + expandClassNames('openastro-horoscope-theme-row') + '">';
+      if (theme) {
+        html += '<span class="' + expandClassNames('openastro-horoscope-theme') + '">' + esc(theme) + '</span>';
+      }
+      if (keywords.length) {
+        html += '<div class="' + expandClassNames('openastro-horoscope-keywords') + '">' + keywords.map(function (item) {
+          return '<span>' + esc(horoscopeLabel(item)) + '</span>';
+        }).join('') + '</div>';
+      }
+      html += '</div>';
+    }
+    if (horoscopeCfg.showSummary !== false && summary) {
+      html += '<p class="' + expandClassNames('openastro-horoscope-summary') + '">' + esc(summary) + '</p>';
+    }
+
+    if (horoscopeCfg.showScores !== false && Object.keys(scores).length) {
+      html += '<div class="' + expandClassNames('openastro-horoscope-scores') + '">';
+      ['overall', 'love', 'career', 'money', 'health'].forEach(function (key) {
+        if (scores[key] === undefined || scores[key] === null || scores[key] === '') {
+          return;
+        }
+        html += '<span><strong>' + esc(titleCase(key)) + '</strong>' + esc(scores[key]) + '</span>';
+      });
+      html += '</div>';
+    }
+
+    if (horoscopeCfg.showScoreFactors !== false && scoreFactors.length) {
+      html += '<details class="' + expandClassNames('openastro-horoscope-score-factors') + '">';
+      html += '<summary>' + esc(t('Why these scores?', lang)) + '</summary>';
+      html += '<div>';
+      scoreFactors.forEach(function (factor) {
+        if (!factor || typeof factor !== 'object') {
+          return;
+        }
+        var dimension = factor.dimension ? titleCase(factor.dimension) : '';
+        var reason = horoscopeFactorReason(factor.reason);
+        var drivers = horoscopeArray(factor.drivers).map(function (driver) {
+          return horoscopeLabel(driver);
+        }).filter(Boolean);
+        if (!dimension && !reason && !drivers.length) {
+          return;
+        }
+        html += '<section>';
+        if (dimension) {
+          html += '<h4>' + esc(dimension) + '</h4>';
+        }
+        if (reason) {
+          html += '<p>' + esc(reason) + '</p>';
+        }
+        if (drivers.length) {
+          html += '<small>' + esc(drivers.join(' · ')) + '</small>';
+        }
+        html += '</section>';
+      });
+      html += '</div></details>';
+    }
+
+    if (horoscopeCfg.showPersonalContext !== false) {
+      html += personalizedHoroscopeContextHtml(personal, lang);
+    }
+
+    if (horoscopeCfg.showLucky !== false && (lucky.color || lucky.number || luckyTime || lucky.direction)) {
+      html += '<dl class="' + expandClassNames('openastro-horoscope-lucky') + '">';
+      [['Color', lucky.color], ['Number', lucky.number], ['Time', luckyTime], ['Direction', lucky.direction]].forEach(function (row) {
+        var label = horoscopeLabel(row[1]);
+        if (label) {
+          html += '<div><dt>' + esc(row[0]) + '</dt><dd>' + esc(label) + '</dd></div>';
+        }
+      });
+      html += '</dl>';
+    }
+
+    if (horoscopeCfg.showGuidance !== false && (doItems.length || dontItems.length || insights.length)) {
+      html += '<div class="' + expandClassNames('openastro-horoscope-guidance') + '">';
+      if (doItems.length) {
+        html += '<section><h4>' + esc(t('Do', lang)) + '</h4><ul>' + doItems.map(function (item) { return '<li>' + esc(horoscopeLabel(item)) + '</li>'; }).join('') + '</ul></section>';
+      }
+      if (dontItems.length) {
+        html += '<section><h4>' + esc(t('Avoid', lang)) + '</h4><ul>' + dontItems.map(function (item) { return '<li>' + esc(horoscopeLabel(item)) + '</li>'; }).join('') + '</ul></section>';
+      }
+      if (insights.length) {
+        html += '<section><h4>' + esc(t('Supporting Insights', lang)) + '</h4><ul>' + insights.map(function (item) { return '<li>' + esc(horoscopeLabel(item)) + '</li>'; }).join('') + '</ul></section>';
+      }
+      html += '</div>';
+    }
+
+    if (horoscopeCfg.showAstro !== false && (astro.moon_sign || astro.moon_phase || highlights.length)) {
+      html += '<div class="' + expandClassNames('openastro-horoscope-astro') + '">';
+      if (astro.moon_sign) {
+        html += '<span>' + esc(t('Moon Sign', lang)) + ': ' + esc(horoscopeLabel(astro.moon_sign)) + '</span>';
+      }
+      if (astro.moon_phase) {
+        html += '<span>' + esc(t('Moon Phase', lang)) + ': ' + esc(horoscopeLabel(astro.moon_phase)) + '</span>';
+      }
+      highlights.forEach(function (item) {
+        html += '<span>' + esc(horoscopeLabel(item)) + '</span>';
+      });
+      html += '</div>';
+    }
+
+    html += '</section>';
+    return html;
+  }
+
+  function mountDailyHoroscope(container, cfg, lang) {
+    var form = create('form', { class: 'openastro-form openastro-horoscope-form' });
+    var sign = create('select', { class: 'openastro-input', 'aria-label': t('Zodiac Sign', lang) });
+    ZODIAC_SIGNS.forEach(function (item) {
+      sign.appendChild(create('option', { value: item.id }, item.label));
+    });
+    var date = create('input', { type: 'date', class: 'openastro-input', 'aria-label': t('Date', lang) });
+    var timezone = create('input', { type: 'text', class: 'openastro-input', placeholder: 'Europe/Paris', 'aria-label': t('Timezone', lang) });
+    var submit = create('button', { type: 'submit', class: 'openastro-btn' }, t('Generate', lang));
+    var status = create('p', { class: 'openastro-status', 'aria-live': 'polite' }, '');
+    var output = create('div', { class: 'openastro-output' });
+
+    date.value = dateTodayValue();
+    timezone.value = defaultTimezone();
+    form.appendChild(sign);
+    form.appendChild(date);
+    form.appendChild(timezone);
+    form.appendChild(submit);
+    form.appendChild(status);
+    container.appendChild(form);
+    container.appendChild(output);
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var payload = {
+        sign: sign.value,
+        date: date.value || 'today',
+        tz_str: timezone.value || defaultTimezone()
+      };
+      submit.disabled = true;
+      status.textContent = t('Generating...', lang);
+      output.innerHTML = '';
+      api('/western/daily-horoscope', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (result) {
+          if (!result.ok || !result.body) {
+            status.textContent = (result.body && result.body.message) || t('Could not generate daily horoscope.', lang);
+            return;
+          }
+          output.innerHTML = dailyHoroscopeHtml(result.body, lang, cfg);
+          status.textContent = t('Done.', lang);
+          window.dispatchEvent(new CustomEvent('openastro:daily-horoscope:generated', {
+            detail: {
+              request: payload,
+              response: result.body
+            }
+          }));
+        })
+        .catch(function () {
+          status.textContent = t('Unexpected error while generating data.', lang);
+        })
+        .finally(function () {
+          submit.disabled = false;
+        });
+    });
   }
 
   function ephemerisBodyById(id) {
@@ -1885,6 +2286,292 @@
     }
   }
 
+  function botSystemLabel(system) {
+    return system === 'vedic' ? 'Vedic Astrologer' : 'Western Astrologer';
+  }
+
+  function botIntroText(system) {
+    return system === 'vedic'
+      ? 'Add your birth details, then ask about your Vedic chart, dashas, panchang, or timing.'
+      : 'Add your birth details, then ask about your natal chart, transits, Moon, or daily timing.';
+  }
+
+  function botQuickPrompts(system) {
+    if (system === 'vedic') {
+      return [
+        'What stands out in my Vedic chart?',
+        'What dasha themes should I watch?',
+        'What is today\'s panchang?'
+      ];
+    }
+    return [
+      'What stands out in my birth chart?',
+      'What should I focus on today?',
+      'What does my Moon need?'
+    ];
+  }
+
+  function normalizeBotCity(item) {
+    if (!item) {
+      return null;
+    }
+    return {
+      name: item.name || '',
+      lat: Number(item.lat),
+      lng: Number(item.lng),
+      timezone: item.timezone || item.tz_str || '',
+      country_code: item.country_code || item.country || '',
+      country_name: item.country_name || item.country_full_name || '',
+      state: cityRegionLabel(item),
+      display_name: citySuggestionLabel(item)
+    };
+  }
+
+  function mountAstrologyBot(container, cfg, lang) {
+    var system = 'western';
+    var selectedCity = null;
+    var profile = null;
+    var loading = false;
+    var messages = [
+      { role: 'assistant', content: botIntroText(system) }
+    ];
+
+    var shell = create('section', { class: 'openastro-bot' });
+    var phone = create('div', { class: 'openastro-bot-phone' });
+    var header = create('div', { class: 'openastro-bot-header' });
+    var headerText = create('div', { class: 'openastro-bot-header-text' });
+    var kicker = create('span', { class: 'openastro-bot-kicker' }, 'Astrology Bot');
+    var title = create('h3', null, botSystemLabel(system));
+    var statusPill = create('span', { class: 'openastro-bot-status-pill' }, 'Online');
+    var contactRow = create('div', { class: 'openastro-bot-contacts', role: 'tablist', 'aria-label': 'Astrology bot system' });
+    var westernButton = create('button', { type: 'button', class: 'openastro-bot-contact is-active', role: 'tab', 'aria-selected': 'true' }, 'Western');
+    var vedicButton = create('button', { type: 'button', class: 'openastro-bot-contact', role: 'tab', 'aria-selected': 'false' }, 'Vedic');
+    var screen = create('div', { class: 'openastro-bot-screen' });
+    var profileForm = create('form', { class: 'openastro-bot-profile' });
+    var profileTitle = create('h4', null, 'Birth profile');
+    var profileGrid = create('div', { class: 'openastro-bot-profile-grid' });
+    var dateLabel = create('label', { class: 'openastro-bot-field' });
+    var timeLabel = create('label', { class: 'openastro-bot-field' });
+    var cityLabelEl = create('label', { class: 'openastro-bot-field openastro-bot-city-field' });
+    var birthDate = create('input', { type: 'date', class: 'openastro-input' });
+    var birthTime = create('input', { type: 'time', class: 'openastro-input', step: '60' });
+    var cityId = 'openastro-bot-city-' + Math.random().toString(36).slice(2, 10);
+    var cityResultsId = cityId + '-results';
+    var cityMessageId = cityId + '-message';
+    var cityInput = create('input', {
+      id: cityId,
+      type: 'text',
+      class: 'openastro-input openastro-city-input',
+      placeholder: 'Birth city',
+      role: 'combobox',
+      'aria-autocomplete': 'list',
+      'aria-haspopup': 'listbox',
+      'aria-controls': cityResultsId,
+      'aria-describedby': cityMessageId,
+      'aria-expanded': 'false'
+    });
+    var cityWrap = create('div', { class: 'openastro-city-field openastro-bot-city-wrap' });
+    var cityMessage = create('p', { id: cityMessageId, class: 'openastro-city-loading', 'aria-live': 'polite' }, '');
+    var cityResults = create('div', { id: cityResultsId, class: 'openastro-results', role: 'listbox', 'aria-label': 'City suggestions' });
+    var saveProfile = create('button', { type: 'submit', class: 'openastro-bot-profile-save' }, 'Save profile');
+    var profileStatus = create('p', { class: 'openastro-bot-profile-status', 'aria-live': 'polite' }, '');
+    var messagesEl = create('div', { class: 'openastro-bot-messages', 'aria-live': 'polite' });
+    var quickRow = create('div', { class: 'openastro-bot-quick' });
+    var composer = create('form', { class: 'openastro-bot-composer' });
+    var input = create('input', { type: 'text', class: 'openastro-bot-input', placeholder: 'Ask the astrologer...', autocomplete: 'off' });
+    var send = create('button', { type: 'submit', class: 'openastro-bot-send' }, 'Send');
+    var chatStatus = create('p', { class: 'openastro-bot-chat-status', 'aria-live': 'polite' }, '');
+
+    headerText.appendChild(kicker);
+    headerText.appendChild(title);
+    header.appendChild(headerText);
+    header.appendChild(statusPill);
+    contactRow.appendChild(westernButton);
+    contactRow.appendChild(vedicButton);
+
+    dateLabel.appendChild(create('span', null, 'Birth date'));
+    dateLabel.appendChild(birthDate);
+    timeLabel.appendChild(create('span', null, 'Birth time'));
+    timeLabel.appendChild(birthTime);
+    cityLabelEl.appendChild(create('span', null, 'Birth city'));
+    cityWrap.appendChild(cityInput);
+    cityWrap.appendChild(cityMessage);
+    cityWrap.appendChild(cityResults);
+    cityLabelEl.appendChild(cityWrap);
+    profileGrid.appendChild(dateLabel);
+    profileGrid.appendChild(timeLabel);
+    profileGrid.appendChild(cityLabelEl);
+    profileForm.appendChild(profileTitle);
+    profileForm.appendChild(profileGrid);
+    profileForm.appendChild(saveProfile);
+    profileForm.appendChild(profileStatus);
+
+    composer.appendChild(input);
+    composer.appendChild(send);
+    phone.appendChild(header);
+    phone.appendChild(contactRow);
+    screen.appendChild(profileForm);
+    screen.appendChild(messagesEl);
+    screen.appendChild(quickRow);
+    screen.appendChild(composer);
+    screen.appendChild(chatStatus);
+    phone.appendChild(screen);
+    shell.appendChild(phone);
+    container.appendChild(shell);
+
+    setupCityAutocomplete({
+      input: cityInput,
+      wrap: cityWrap,
+      results: cityResults,
+      message: cityMessage,
+      resultsId: cityResultsId,
+      onSelect: function (item) {
+        selectedCity = normalizeBotCity(item);
+        if (!selectedCity) {
+          markProfileDirty();
+        }
+      }
+    });
+
+    function markProfileDirty() {
+      if (!profile) {
+        return;
+      }
+      profile = null;
+      profileForm.classList.remove('is-saved');
+      profileStatus.textContent = 'Save the updated birth profile before continuing.';
+      syncComposerState();
+    }
+
+    function setSystem(nextSystem) {
+      system = nextSystem === 'vedic' ? 'vedic' : 'western';
+      title.textContent = botSystemLabel(system);
+      westernButton.classList.toggle('is-active', system === 'western');
+      vedicButton.classList.toggle('is-active', system === 'vedic');
+      westernButton.setAttribute('aria-selected', system === 'western' ? 'true' : 'false');
+      vedicButton.setAttribute('aria-selected', system === 'vedic' ? 'true' : 'false');
+      messages = [{ role: 'assistant', content: botIntroText(system) }];
+      renderMessages();
+      renderQuickPrompts();
+      chatStatus.textContent = '';
+    }
+
+    function renderMessages() {
+      messagesEl.innerHTML = '';
+      messages.forEach(function (message) {
+        var bubble = create('div', { class: 'openastro-bot-message openastro-bot-message-' + (message.role === 'user' ? 'user' : 'assistant') });
+        String(message.content || '').split(/\n{2,}/).forEach(function (paragraph) {
+          bubble.appendChild(create('p', null, paragraph));
+        });
+        messagesEl.appendChild(bubble);
+      });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function renderQuickPrompts() {
+      quickRow.innerHTML = '';
+      botQuickPrompts(system).forEach(function (prompt) {
+        var button = create('button', { type: 'button', class: 'openastro-bot-quick-btn' }, prompt);
+        button.disabled = loading || !profile;
+        button.addEventListener('click', function () {
+          sendMessage(prompt);
+        });
+        quickRow.appendChild(button);
+      });
+    }
+
+    function syncComposerState() {
+      var disabled = loading || !profile;
+      input.disabled = disabled;
+      send.disabled = disabled;
+      saveProfile.disabled = loading;
+      statusPill.textContent = loading ? 'Thinking' : 'Online';
+      renderQuickPrompts();
+    }
+
+    function saveBirthProfile() {
+      if (!birthDate.value || !birthTime.value || !selectedCity) {
+        profileStatus.textContent = 'Birth date, exact time, and a city from suggestions are required.';
+        return false;
+      }
+      profile = {
+        birthDate: birthDate.value,
+        birthTime: birthTime.value,
+        city: selectedCity
+      };
+      profileForm.classList.add('is-saved');
+      profileStatus.textContent = 'Profile saved for this chat.';
+      messages.push({ role: 'assistant', content: botSystemLabel(system) + ' is ready. Ask a chart or timing question.' });
+      renderMessages();
+      syncComposerState();
+      input.focus();
+      return true;
+    }
+
+    function sendMessage(text) {
+      var content = String(text || '').trim();
+      if (!content) {
+        return;
+      }
+      if (!profile && !saveBirthProfile()) {
+        return;
+      }
+
+      var history = messages.slice(-8);
+      messages.push({ role: 'user', content: content });
+      renderMessages();
+      input.value = '';
+      loading = true;
+      chatStatus.textContent = 'Generating answer...';
+      syncComposerState();
+
+      api('/astrology-bot/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: system,
+          message: content,
+          history: history,
+          profile: profile,
+          language: lang
+        })
+      })
+        .then(function (result) {
+          if (!result.ok || !result.body) {
+            messages.push({ role: 'assistant', content: (result.body && result.body.message) || 'The astrology bot could not answer right now.' });
+            return;
+          }
+          messages.push({ role: 'assistant', content: result.body.reply || 'The astrology bot returned an empty answer.' });
+        })
+        .catch(function () {
+          messages.push({ role: 'assistant', content: 'Unexpected error while generating the bot answer.' });
+        })
+        .finally(function () {
+          loading = false;
+          chatStatus.textContent = '';
+          renderMessages();
+          syncComposerState();
+        });
+    }
+
+    westernButton.addEventListener('click', function () { setSystem('western'); });
+    vedicButton.addEventListener('click', function () { setSystem('vedic'); });
+    birthDate.addEventListener('input', markProfileDirty);
+    birthTime.addEventListener('input', markProfileDirty);
+    profileForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      saveBirthProfile();
+    });
+    composer.addEventListener('submit', function (event) {
+      event.preventDefault();
+      sendMessage(input.value);
+    });
+
+    renderMessages();
+    renderQuickPrompts();
+    syncComposerState();
+  }
+
   function mountEphemeris(container, cfg) {
     var now = new Date();
     var selectedCity = null;
@@ -2212,6 +2899,7 @@
     var includeInterpretation = container.getAttribute('data-include-interpretation') !== '0';
     var interpretationStyle = container.getAttribute('data-interpretation-style') === 'poetic' ? 'poetic' : 'improved';
     var simpleMode = isSimpleSignMode(mode);
+    var personalizedHoroscopeMode = isPersonalizedHoroscopeMode(mode);
 
     container.classList.add('wp-block-astrology-suite-widget');
     setSuiteVariable(container, '--openastro-bg', cfg.style.transparentBackground ? 'transparent' : cfg.style.backgroundColor);
@@ -2257,6 +2945,26 @@
     setSuiteVariable(container, '--openastro-ephemeris-retrograde', cfg.ephemerisStyle.retrogradeColor);
     setSuiteVariable(container, '--openastro-ephemeris-ingress', cfg.ephemerisStyle.ingressColor);
     setSuiteVariable(container, '--openastro-ephemeris-station', cfg.ephemerisStyle.stationColor);
+    setSuiteVariable(container, '--openastro-horoscope-card-bg', cfg.horoscopeStyle.cardBgColor);
+    setSuiteVariable(container, '--openastro-horoscope-card-text', cfg.horoscopeStyle.cardTextColor);
+    setSuiteVariable(container, '--openastro-horoscope-card-border', cfg.horoscopeStyle.cardBorderColor);
+    setSuiteVariable(container, '--openastro-horoscope-theme-bg', cfg.horoscopeStyle.themeBgColor);
+    setSuiteVariable(container, '--openastro-horoscope-theme-text', cfg.horoscopeStyle.themeTextColor);
+    setSuiteVariable(container, '--openastro-horoscope-chip-bg', cfg.horoscopeStyle.chipBgColor);
+    setSuiteVariable(container, '--openastro-horoscope-chip-text', cfg.horoscopeStyle.chipTextColor);
+    setSuiteVariable(container, '--openastro-horoscope-chip-border', cfg.horoscopeStyle.chipBorderColor);
+    setSuiteVariable(container, '--openastro-horoscope-tile-bg', cfg.horoscopeStyle.tileBgColor);
+    setSuiteVariable(container, '--openastro-horoscope-tile-text', cfg.horoscopeStyle.tileTextColor);
+    setSuiteVariable(container, '--openastro-horoscope-tile-border', cfg.horoscopeStyle.tileBorderColor);
+    setSuiteVariable(container, '--openastro-horoscope-accent', cfg.horoscopeStyle.accentColor);
+    setSuiteVariable(container, '--openastro-bot-shell-bg', cfg.botStyle.shellBgColor);
+    setSuiteVariable(container, '--openastro-bot-header-bg', cfg.botStyle.headerBgColor);
+    setSuiteVariable(container, '--openastro-bot-screen-bg', cfg.botStyle.screenBgColor);
+    setSuiteVariable(container, '--openastro-bot-accent', cfg.botStyle.accentColor);
+    setSuiteVariable(container, '--openastro-bot-user-bubble-bg', cfg.botStyle.userBubbleBgColor);
+    setSuiteVariable(container, '--openastro-bot-user-bubble-text', cfg.botStyle.userBubbleTextColor);
+    setSuiteVariable(container, '--openastro-bot-assistant-bubble-bg', cfg.botStyle.assistantBubbleBgColor);
+    setSuiteVariable(container, '--openastro-bot-assistant-bubble-text', cfg.botStyle.assistantBubbleTextColor);
     if (cfg.style.showBorder === false) {
       container.classList.add('astrology-suite-no-border');
       container.classList.add('openastro-no-border');
@@ -2275,6 +2983,16 @@
 
     if (isEphemerisMode(mode)) {
       mountEphemeris(container, cfg);
+      return;
+    }
+
+    if (isAstrologyBotMode(mode)) {
+      mountAstrologyBot(container, cfg, lang);
+      return;
+    }
+
+    if (isDailyHoroscopeMode(mode)) {
+      mountDailyHoroscope(container, cfg, lang);
       return;
     }
 
@@ -2298,6 +3016,7 @@
     }
     var name = create('input', { type: 'text', class: 'openastro-input', placeholder: t('Name (optional)', lang), 'aria-label': t('Name (optional)', lang) });
     var date = create('input', { type: 'date', class: 'openastro-input', 'aria-label': t('Birth date', lang) });
+    var targetDate = create('input', { type: 'date', class: 'openastro-input', 'aria-label': t('Horoscope date', lang) });
     var timeControl = createTimeControls(lang);
     var timeUnknownWrap = create('label', { class: 'openastro-inline openastro-time-unknown-wrap' });
     var timeUnknown = create('input', { type: 'checkbox' });
@@ -2335,6 +3054,10 @@
 
     form.appendChild(name);
     form.appendChild(date);
+    if (personalizedHoroscopeMode) {
+      targetDate.value = dateTodayValue();
+      form.appendChild(targetDate);
+    }
     form.appendChild(timeControl.wrap);
     if (!simpleMode) {
       form.appendChild(timeUnknownWrap);
@@ -2343,7 +3066,7 @@
     cityWrap.appendChild(cityLoading);
     cityWrap.appendChild(cityResults);
     form.appendChild(cityWrap);
-    if (!simpleMode) {
+    if (!simpleMode && !personalizedHoroscopeMode) {
       form.appendChild(includeMinorWrap);
     }
     form.appendChild(submit);
@@ -2670,7 +3393,8 @@
         city: selectedCity.name,
         lat: selectedCity.lat,
         lng: selectedCity.lng,
-        tz_str: selectedCity.timezone
+        tz_str: selectedCity.timezone,
+        language: lang
       };
 
       if (!simpleMode) {
@@ -2706,6 +3430,59 @@
             output.innerHTML = simpleSignHtml(result.body, includeInterpretation, lang);
             status.textContent = t('Done.', lang);
             saveHistoryEntry(false, payload, selectedCity);
+          })
+          .catch(function () {
+            status.textContent = t('Unexpected error while generating data.', lang);
+          })
+          .finally(function () {
+            submit.disabled = false;
+          });
+
+        return;
+      }
+
+      if (personalizedHoroscopeMode) {
+        var personalPayload = {
+          birth: {
+            year: payload.year,
+            month: payload.month,
+            day: payload.day,
+            city: payload.city,
+            lat: payload.lat,
+            lng: payload.lng,
+            tz_str: payload.tz_str,
+            time_known: payload.time_known !== false
+          },
+          date: targetDate.value || 'today',
+          tz_str: payload.tz_str,
+	          include_interpretation_blocks: includeInterpretation !== false
+	        };
+        personalPayload.language = lang;
+        if (payload.time_known !== false) {
+          personalPayload.birth.hour = payload.hour;
+          personalPayload.birth.minute = payload.minute;
+        }
+
+        api('/western/personalized-horoscope', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(personalPayload)
+        })
+          .then(function (result) {
+            if (!result.ok || !result.body) {
+              status.textContent = (result.body && result.body.message) || t('Could not generate personalized horoscope.', lang);
+              return;
+            }
+
+            output.innerHTML = dailyHoroscopeHtml(result.body, lang, cfg);
+            status.textContent = t('Done.', lang);
+            saveHistoryEntry(false, payload, selectedCity);
+            window.dispatchEvent(new CustomEvent('openastro:personalized-horoscope:generated', {
+              detail: {
+                request: personalPayload,
+                response: result.body
+              }
+            }));
           })
           .catch(function () {
             status.textContent = t('Unexpected error while generating data.', lang);

@@ -142,6 +142,24 @@
       title: i18n.__('Astrology Suite Ephemeris', 'astrology-suite-freeastroapi'),
       icon: 'calendar-alt',
       description: i18n.__('Includes monthly ephemeris table with selectable bodies and optional local points.', 'astrology-suite-freeastroapi')
+    },
+    {
+      name: 'astrology-suite/daily-horoscope',
+      title: i18n.__('Astrology Suite Daily Horoscope', 'astrology-suite-freeastroapi'),
+      icon: 'welcome-view-site',
+      description: i18n.__('Includes sign, date, and timezone controls with a daily horoscope result.', 'astrology-suite-freeastroapi')
+    },
+    {
+      name: 'astrology-suite/personalized-horoscope',
+      title: i18n.__('Astrology Suite Personalized Horoscope', 'astrology-suite-freeastroapi'),
+      icon: 'id',
+      description: i18n.__('Includes birth details, city autocomplete, target date, and a personalized daily horoscope result.', 'astrology-suite-freeastroapi')
+    },
+    {
+      name: 'astrology-suite/astrology-bot',
+      title: i18n.__('Astrology Suite Bot', 'astrology-suite-freeastroapi'),
+      icon: 'format-chat',
+      description: i18n.__('Embeds the FreeAstroAPI Western/Vedic astrology chat component with birth profile and style controls.', 'astrology-suite-freeastroapi')
     }
   ];
 

@@ -43,6 +43,26 @@
   --openastro-modal-text: #111111;
   --openastro-modal-border: #111111;
   --openastro-modal-accent: #d97706;
+  --openastro-horoscope-card-bg: #ffffff;
+  --openastro-horoscope-card-text: #111111;
+  --openastro-horoscope-card-border: #e5e7eb;
+  --openastro-horoscope-theme-bg: #111827;
+  --openastro-horoscope-theme-text: #ffffff;
+  --openastro-horoscope-chip-bg: #f9fafb;
+  --openastro-horoscope-chip-text: #111111;
+  --openastro-horoscope-chip-border: #e5e7eb;
+  --openastro-horoscope-tile-bg: #f9fafb;
+  --openastro-horoscope-tile-text: #111111;
+  --openastro-horoscope-tile-border: #e5e7eb;
+  --openastro-horoscope-accent: #2563eb;
+  --openastro-bot-shell-bg: #101014;
+  --openastro-bot-header-bg: #17231f;
+  --openastro-bot-screen-bg: #0f1f1b;
+  --openastro-bot-accent: #facc15;
+  --openastro-bot-user-bubble-bg: #d8f7c5;
+  --openastro-bot-user-bubble-text: #142117;
+  --openastro-bot-assistant-bubble-bg: #202c28;
+  --openastro-bot-assistant-bubble-text: #f1f5f9;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: var(--astrology-suite-font-body, var(--openastro-font-body));
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -1162,4 +1182,530 @@
 .openastro-simple-sign-interpretation p {
   margin: 0;
   line-height: 1.45;
+}
+
+.openastro-horoscope-form {
+  max-width: 620px;
+}
+
+.openastro-horoscope-card {
+  display: grid;
+  gap: 14px;
+  border-color: var(--astrology-suite-horoscope-card-border, var(--openastro-horoscope-card-border));
+  background: var(--astrology-suite-horoscope-card-bg, var(--openastro-horoscope-card-bg));
+  color: var(--astrology-suite-horoscope-card-text, var(--openastro-horoscope-card-text));
+}
+
+.openastro-horoscope-eyebrow {
+  display: inline-flex;
+}
+
+.openastro-horoscope-card h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.openastro-horoscope-theme-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.openastro-horoscope-theme,
+.openastro-horoscope-keywords span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid var(--astrology-suite-horoscope-chip-border, var(--openastro-horoscope-chip-border));
+  border-radius: 999px;
+  background: var(--astrology-suite-horoscope-chip-bg, var(--openastro-horoscope-chip-bg));
+  padding: 5px 10px;
+  color: var(--astrology-suite-horoscope-chip-text, var(--openastro-horoscope-chip-text));
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.openastro-horoscope-theme {
+  border-color: var(--astrology-suite-horoscope-theme-bg, var(--openastro-horoscope-theme-bg));
+  background: var(--astrology-suite-horoscope-theme-bg, var(--openastro-horoscope-theme-bg));
+  color: var(--astrology-suite-horoscope-theme-text, var(--openastro-horoscope-theme-text));
+}
+
+.openastro-horoscope-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.openastro-horoscope-summary {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.openastro-horoscope-scores {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.openastro-horoscope-scores span,
+.openastro-horoscope-lucky div {
+  border: 1px solid var(--astrology-suite-horoscope-tile-border, var(--openastro-horoscope-tile-border));
+  border-radius: 8px;
+  background: var(--astrology-suite-horoscope-tile-bg, var(--openastro-horoscope-tile-bg));
+  color: var(--astrology-suite-horoscope-tile-text, var(--openastro-horoscope-tile-text));
+  padding: 10px;
+}
+
+.openastro-horoscope-astro span {
+  border: 1px solid var(--astrology-suite-horoscope-chip-border, var(--openastro-horoscope-chip-border));
+  border-radius: 8px;
+  background: var(--astrology-suite-horoscope-chip-bg, var(--openastro-horoscope-chip-bg));
+  color: var(--astrology-suite-horoscope-chip-text, var(--openastro-horoscope-chip-text));
+  padding: 10px;
+}
+
+.openastro-horoscope-scores strong,
+.openastro-horoscope-lucky dt {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--astrology-suite-label-color, var(--openastro-label-color));
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+}
+
+.openastro-horoscope-score-factors {
+  border-top: 1px solid var(--astrology-suite-horoscope-card-border, var(--openastro-horoscope-card-border));
+  padding-top: 10px;
+}
+
+.openastro-horoscope-score-factors summary {
+  cursor: pointer;
+  color: var(--astrology-suite-label-color, var(--openastro-label-color));
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+  font-weight: 800;
+}
+
+.openastro-horoscope-score-factors > div {
+  display: grid;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.openastro-horoscope-score-factors section {
+  border-left: 3px solid var(--astrology-suite-horoscope-accent, var(--openastro-horoscope-accent));
+  padding-left: 10px;
+}
+
+.openastro-horoscope-score-factors h4 {
+  margin: 0 0 4px;
+}
+
+.openastro-horoscope-score-factors p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.openastro-horoscope-score-factors small {
+  display: block;
+  margin-top: 4px;
+  color: var(--astrology-suite-label-color, var(--openastro-label-color));
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+}
+
+.openastro-horoscope-personal {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--astrology-suite-horoscope-card-border, var(--openastro-horoscope-card-border));
+  padding-top: 12px;
+}
+
+.openastro-horoscope-personal h4,
+.openastro-horoscope-personal h5,
+.openastro-horoscope-personal h6 {
+  margin: 0;
+}
+
+.openastro-horoscope-personal-meta,
+.openastro-horoscope-timing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.openastro-horoscope-personal-meta span {
+  border: 1px solid var(--astrology-suite-horoscope-chip-border, var(--openastro-horoscope-chip-border));
+  border-radius: 999px;
+  background: var(--astrology-suite-horoscope-chip-bg, var(--openastro-horoscope-chip-bg));
+  color: var(--astrology-suite-horoscope-chip-text, var(--openastro-horoscope-chip-text));
+  padding: 5px 10px;
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+  font-weight: 700;
+}
+
+.openastro-horoscope-transits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
+}
+
+.openastro-horoscope-transits article,
+.openastro-horoscope-timing {
+  border: 1px solid var(--astrology-suite-horoscope-tile-border, var(--openastro-horoscope-tile-border));
+  border-radius: 8px;
+  background: var(--astrology-suite-horoscope-tile-bg, var(--openastro-horoscope-tile-bg));
+  color: var(--astrology-suite-horoscope-tile-text, var(--openastro-horoscope-tile-text));
+  padding: 12px;
+}
+
+.openastro-horoscope-transits article {
+  display: grid;
+  gap: 8px;
+}
+
+.openastro-horoscope-transits p,
+.openastro-horoscope-timing p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.openastro-horoscope-transit-meta {
+  color: var(--astrology-suite-label-color, var(--openastro-label-color));
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+  font-weight: 700;
+}
+
+.openastro-horoscope-transits ul,
+.openastro-horoscope-timing ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.openastro-horoscope-timing {
+  display: grid;
+  gap: 10px;
+  border-left: 3px solid var(--astrology-suite-horoscope-accent, var(--openastro-horoscope-accent));
+}
+
+.openastro-horoscope-lucky {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.openastro-horoscope-lucky dd {
+  margin: 0;
+}
+
+.openastro-horoscope-guidance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.openastro-horoscope-guidance section {
+  border-top: 1px solid var(--astrology-suite-horoscope-card-border, var(--openastro-horoscope-card-border));
+  padding-top: 10px;
+}
+
+.openastro-horoscope-guidance h4 {
+  margin: 0 0 8px;
+}
+
+.openastro-horoscope-guidance ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.openastro-horoscope-astro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .openastro-horoscope-scores,
+  .openastro-horoscope-lucky,
+  .openastro-horoscope-guidance,
+  .openastro-horoscope-transits {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.openastro-bot {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.openastro-bot-phone {
+  width: min(100%, 460px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: var(--astrology-suite-bot-shell-bg, var(--openastro-bot-shell-bg));
+  color: var(--astrology-suite-bot-assistant-bubble-text, var(--openastro-bot-assistant-bubble-text));
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+}
+
+.openastro-bot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  background: var(--astrology-suite-bot-header-bg, var(--openastro-bot-header-bg));
+}
+
+.openastro-bot-header h3 {
+  margin: 3px 0 0;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.openastro-bot-kicker,
+.openastro-bot-status-pill,
+.openastro-bot-profile-status,
+.openastro-bot-chat-status {
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+  line-height: 1.35;
+}
+
+.openastro-bot-kicker {
+  color: var(--astrology-suite-bot-accent, var(--openastro-bot-accent));
+  font-weight: 800;
+}
+
+.openastro-bot-status-pill {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--astrology-suite-bot-accent, var(--openastro-bot-accent)) 48%, transparent);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--astrology-suite-bot-accent, var(--openastro-bot-accent));
+  font-weight: 800;
+}
+
+.openastro-bot-contacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--astrology-suite-bot-shell-bg, var(--openastro-bot-shell-bg));
+}
+
+.openastro-bot-contact,
+.openastro-bot-profile-save,
+.openastro-bot-quick-btn,
+.openastro-bot-send {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--astrology-suite-bot-assistant-bubble-text, var(--openastro-bot-assistant-bubble-text));
+  font: inherit;
+  font-size: var(--astrology-suite-font-button, var(--openastro-font-button));
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.openastro-bot-contact {
+  min-height: 40px;
+  padding: 9px 10px;
+}
+
+.openastro-bot-contact.is-active,
+.openastro-bot-profile-save,
+.openastro-bot-send {
+  border-color: var(--astrology-suite-bot-accent, var(--openastro-bot-accent));
+  background: var(--astrology-suite-bot-accent, var(--openastro-bot-accent));
+  color: #111111;
+}
+
+.openastro-bot-contact:hover:not(:disabled),
+.openastro-bot-profile-save:hover:not(:disabled),
+.openastro-bot-quick-btn:hover:not(:disabled),
+.openastro-bot-send:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.openastro-bot-contact:focus-visible,
+.openastro-bot-profile-save:focus-visible,
+.openastro-bot-quick-btn:focus-visible,
+.openastro-bot-input:focus-visible,
+.openastro-bot-send:focus-visible {
+  outline: 2px solid var(--astrology-suite-bot-accent, var(--openastro-bot-accent));
+  outline-offset: 2px;
+}
+
+.openastro-bot-screen {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  background: var(--astrology-suite-bot-screen-bg, var(--openastro-bot-screen-bg));
+}
+
+.openastro-bot-profile {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.openastro-bot-profile h4 {
+  margin: 0;
+  color: inherit;
+  font-size: 16px;
+}
+
+.openastro-bot-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.openastro-bot-city-field {
+  grid-column: 1 / -1;
+}
+
+.openastro-bot-field {
+  display: grid;
+  gap: 5px;
+  color: var(--astrology-suite-bot-assistant-bubble-text, var(--openastro-bot-assistant-bubble-text));
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+  font-weight: 700;
+}
+
+.openastro-bot-profile .openastro-input {
+  min-height: 42px;
+}
+
+.openastro-bot-profile-save {
+  min-height: 42px;
+  padding: 10px 12px;
+}
+
+.openastro-bot-profile-status,
+.openastro-bot-chat-status {
+  min-height: 18px;
+  margin: 0;
+  color: color-mix(in srgb, var(--astrology-suite-bot-assistant-bubble-text, var(--openastro-bot-assistant-bubble-text)) 82%, transparent);
+}
+
+.openastro-bot-profile.is-saved {
+  border-color: color-mix(in srgb, var(--astrology-suite-bot-accent, var(--openastro-bot-accent)) 42%, rgba(255, 255, 255, 0.12));
+}
+
+.openastro-bot-messages {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 220px;
+  max-height: 380px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.openastro-bot-message {
+  width: fit-content;
+  max-width: 86%;
+  border-radius: 10px;
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+}
+
+.openastro-bot-message p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.openastro-bot-message p + p {
+  margin-top: 8px;
+}
+
+.openastro-bot-message-assistant {
+  justify-self: start;
+  background: var(--astrology-suite-bot-assistant-bubble-bg, var(--openastro-bot-assistant-bubble-bg));
+  color: var(--astrology-suite-bot-assistant-bubble-text, var(--openastro-bot-assistant-bubble-text));
+}
+
+.openastro-bot-message-user {
+  justify-self: end;
+  background: var(--astrology-suite-bot-user-bubble-bg, var(--openastro-bot-user-bubble-bg));
+  color: var(--astrology-suite-bot-user-bubble-text, var(--openastro-bot-user-bubble-text));
+}
+
+.openastro-bot-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.openastro-bot-quick-btn {
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: var(--astrology-suite-font-meta, var(--openastro-font-meta));
+}
+
+.openastro-bot-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.openastro-bot-input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--astrology-suite-bot-assistant-bubble-text, var(--openastro-bot-assistant-bubble-text));
+  padding: 10px 12px;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.openastro-bot-input::placeholder {
+  color: color-mix(in srgb, var(--astrology-suite-bot-assistant-bubble-text, var(--openastro-bot-assistant-bubble-text)) 68%, transparent);
+}
+
+.openastro-bot-send {
+  min-width: 76px;
+  min-height: 44px;
+  padding: 10px 14px;
+}
+
+.openastro-bot-contact:disabled,
+.openastro-bot-profile-save:disabled,
+.openastro-bot-quick-btn:disabled,
+.openastro-bot-input:disabled,
+.openastro-bot-send:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 520px) {
+  .openastro-bot-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .openastro-bot-profile-grid,
+  .openastro-bot-composer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .openastro-bot-send {
+    width: 100%;
+  }
 }

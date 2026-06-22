@@ -11,6 +11,11 @@ class Plugin
     private const RATE_LIMIT_MAX_REQUESTS = 30;
     private const RATE_LIMIT_WINDOW_SECONDS = 60;
     private const UPSTREAM_BASE_URL = 'https://api.freeastroapi.com/api/v1';
+    private const UPSTREAM_V2_BASE_URL = 'https://api.freeastroapi.com/api/v2';
+    private const UPSTREAM_V3_BASE_URL = 'https://api.freeastroapi.com/api/v3';
+    private const UPSTREAM_MCP_URL = 'https://api.freeastroapi.com/mcp';
+    private const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+    private const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
     private const UPSTREAM_SERVICE_URL = 'https://www.freeastroapi.com/';
     private const UPSTREAM_TERMS_URL = 'https://www.freeastroapi.com/terms';
     private const UPSTREAM_PRIVACY_URL = 'https://www.freeastroapi.com/privacy';
@@ -18,6 +23,10 @@ class Plugin
     private const UPSTREAM_CHART_DESIGNER_URL = 'https://www.freeastroapi.com/dashboard/chart-designer';
     private const UPSTREAM_CHART_DOCS_URL = 'https://www.freeastroapi.com/docs/western/chart-svg';
     private const UPSTREAM_EPHEMERIS_DOCS_URL = 'https://www.freeastroapi.com/docs/western/ephemeris';
+    private const UPSTREAM_DAILY_SIGN_DOCS_URL = 'https://www.freeastroapi.com/docs/western/daily-sign';
+    private const UPSTREAM_DAILY_PERSONAL_DOCS_URL = 'https://www.freeastroapi.com/docs/western/daily-personal';
+    private const UPSTREAM_ASTROLOGY_BOT_URL = 'https://www.freeastroapi.com/astrology-bot';
+    private const GEMINI_API_KEY_DOCS_URL = 'https://ai.google.dev/gemini-api/docs/api-key';
     private const CALCULATION_CAPABILITY = 'edit_posts';
     private const BLOCK_NAMESPACE = 'astrology-suite';
     private const LEGACY_BLOCK_NAMESPACE = 'openastro';
@@ -35,11 +44,17 @@ class Plugin
         'simple-sign-rising',
         'simple-sign-midheaven',
         'ephemeris',
+        'daily-horoscope',
+        'personalized-horoscope',
+        'astrology-bot',
     ];
 
     public const OPTION_API_KEY = 'openastro_api_key';
+    public const OPTION_BOT_GEMINI_API_KEY = 'openastro_bot_gemini_api_key';
+    public const OPTION_BOT_GEMINI_MODEL = 'openastro_bot_gemini_model';
     public const OPTION_PUBLIC_CALCULATIONS = 'openastro_public_calculations';
     public const OPTION_FRONTEND_LANGUAGE = 'openastro_frontend_language';
+    public const OPTION_NATAL_RESPONSE_LANGUAGE = 'openastro_natal_response_language';
     public const OPTION_REPORT_DETAIL = 'openastro_report_detail';
     public const OPTION_REPORT_MAX_PLANETS = 'openastro_report_max_planets';
     public const OPTION_REPORT_MAX_ASPECTS = 'openastro_report_max_aspects';
@@ -103,6 +118,34 @@ class Plugin
     public const OPTION_EPHEMERIS_RETROGRADE_COLOR = 'openastro_ephemeris_retrograde_color';
     public const OPTION_EPHEMERIS_INGRESS_COLOR = 'openastro_ephemeris_ingress_color';
     public const OPTION_EPHEMERIS_STATION_COLOR = 'openastro_ephemeris_station_color';
+    public const OPTION_HOROSCOPE_SHOW_THEME = 'openastro_horoscope_show_theme';
+    public const OPTION_HOROSCOPE_SHOW_SUMMARY = 'openastro_horoscope_show_summary';
+    public const OPTION_HOROSCOPE_SHOW_SCORES = 'openastro_horoscope_show_scores';
+    public const OPTION_HOROSCOPE_SHOW_SCORE_FACTORS = 'openastro_horoscope_show_score_factors';
+    public const OPTION_HOROSCOPE_SHOW_PERSONAL_CONTEXT = 'openastro_horoscope_show_personal_context';
+    public const OPTION_HOROSCOPE_SHOW_LUCKY = 'openastro_horoscope_show_lucky';
+    public const OPTION_HOROSCOPE_SHOW_GUIDANCE = 'openastro_horoscope_show_guidance';
+    public const OPTION_HOROSCOPE_SHOW_ASTRO = 'openastro_horoscope_show_astro';
+    public const OPTION_HOROSCOPE_CARD_BG_COLOR = 'openastro_horoscope_card_bg_color';
+    public const OPTION_HOROSCOPE_CARD_TEXT_COLOR = 'openastro_horoscope_card_text_color';
+    public const OPTION_HOROSCOPE_CARD_BORDER_COLOR = 'openastro_horoscope_card_border_color';
+    public const OPTION_HOROSCOPE_THEME_BG_COLOR = 'openastro_horoscope_theme_bg_color';
+    public const OPTION_HOROSCOPE_THEME_TEXT_COLOR = 'openastro_horoscope_theme_text_color';
+    public const OPTION_HOROSCOPE_CHIP_BG_COLOR = 'openastro_horoscope_chip_bg_color';
+    public const OPTION_HOROSCOPE_CHIP_TEXT_COLOR = 'openastro_horoscope_chip_text_color';
+    public const OPTION_HOROSCOPE_CHIP_BORDER_COLOR = 'openastro_horoscope_chip_border_color';
+    public const OPTION_HOROSCOPE_TILE_BG_COLOR = 'openastro_horoscope_tile_bg_color';
+    public const OPTION_HOROSCOPE_TILE_TEXT_COLOR = 'openastro_horoscope_tile_text_color';
+    public const OPTION_HOROSCOPE_TILE_BORDER_COLOR = 'openastro_horoscope_tile_border_color';
+    public const OPTION_HOROSCOPE_ACCENT_COLOR = 'openastro_horoscope_accent_color';
+    public const OPTION_BOT_SHELL_BG_COLOR = 'openastro_bot_shell_bg_color';
+    public const OPTION_BOT_HEADER_BG_COLOR = 'openastro_bot_header_bg_color';
+    public const OPTION_BOT_SCREEN_BG_COLOR = 'openastro_bot_screen_bg_color';
+    public const OPTION_BOT_ACCENT_COLOR = 'openastro_bot_accent_color';
+    public const OPTION_BOT_USER_BUBBLE_BG_COLOR = 'openastro_bot_user_bubble_bg_color';
+    public const OPTION_BOT_USER_BUBBLE_TEXT_COLOR = 'openastro_bot_user_bubble_text_color';
+    public const OPTION_BOT_ASSISTANT_BUBBLE_BG_COLOR = 'openastro_bot_assistant_bubble_bg_color';
+    public const OPTION_BOT_ASSISTANT_BUBBLE_TEXT_COLOR = 'openastro_bot_assistant_bubble_text_color';
     public const OPTION_TYPO_H2 = 'openastro_typo_h2';
     public const OPTION_TYPO_H3 = 'openastro_typo_h3';
     public const OPTION_TYPO_H4 = 'openastro_typo_h4';
@@ -134,7 +177,7 @@ class Plugin
 
     public static function add_plugin_action_links(array $links): array
     {
-        $settings_url = admin_url('admin.php?page=' . self::SETTINGS_PAGE_SLUG);
+        $settings_url = admin_url('options-general.php?page=' . self::SETTINGS_PAGE_SLUG);
         $settings_link = '<a href="' . esc_url($settings_url) . '">' . esc_html__('Settings', 'astrology-suite-freeastroapi') . '</a>';
         array_unshift($links, $settings_link);
         return $links;
@@ -873,8 +916,11 @@ JSON
 
         $keys = [
             self::OPTION_API_KEY,
+            self::OPTION_BOT_GEMINI_API_KEY,
+            self::OPTION_BOT_GEMINI_MODEL,
             self::OPTION_PUBLIC_CALCULATIONS,
             self::OPTION_FRONTEND_LANGUAGE,
+            self::OPTION_NATAL_RESPONSE_LANGUAGE,
             self::OPTION_REPORT_DETAIL,
             self::OPTION_REPORT_MAX_PLANETS,
             self::OPTION_REPORT_MAX_ASPECTS,
@@ -921,6 +967,14 @@ JSON
             self::OPTION_STYLE_MODAL_TEXT_COLOR,
             self::OPTION_STYLE_MODAL_BORDER_COLOR,
             self::OPTION_STYLE_MODAL_ACCENT_COLOR,
+            self::OPTION_BOT_SHELL_BG_COLOR,
+            self::OPTION_BOT_HEADER_BG_COLOR,
+            self::OPTION_BOT_SCREEN_BG_COLOR,
+            self::OPTION_BOT_ACCENT_COLOR,
+            self::OPTION_BOT_USER_BUBBLE_BG_COLOR,
+            self::OPTION_BOT_USER_BUBBLE_TEXT_COLOR,
+            self::OPTION_BOT_ASSISTANT_BUBBLE_BG_COLOR,
+            self::OPTION_BOT_ASSISTANT_BUBBLE_TEXT_COLOR,
         ];
 
         foreach ($keys as $key) {
@@ -970,6 +1024,27 @@ JSON
         return sanitize_text_field($raw);
     }
 
+    public static function sanitize_bot_gemini_api_key($value): string
+    {
+        $raw = trim((string) wp_unslash($value));
+        if ($raw === '') {
+            return (string) get_option(self::OPTION_BOT_GEMINI_API_KEY, '');
+        }
+
+        return sanitize_text_field($raw);
+    }
+
+    public static function sanitize_bot_gemini_model($value): string
+    {
+        $raw = trim((string) wp_unslash($value));
+        if ($raw === '') {
+            return self::DEFAULT_GEMINI_MODEL;
+        }
+
+        $clean = preg_replace('/[^A-Za-z0-9._:-]/', '', $raw);
+        return $clean !== '' ? substr($clean, 0, 100) : self::DEFAULT_GEMINI_MODEL;
+    }
+
     public static function sanitize_public_calculations($value): bool
     {
         return (bool) $value;
@@ -988,6 +1063,30 @@ JSON
         ];
     }
 
+    private static function supported_natal_response_languages(): array
+    {
+        return [
+            'auto' => __('Auto (match widget language when supported)', 'astrology-suite-freeastroapi'),
+            'en' => __('English', 'astrology-suite-freeastroapi'),
+            'fr' => __('French', 'astrology-suite-freeastroapi'),
+            'es' => __('Spanish', 'astrology-suite-freeastroapi'),
+            'tr' => __('Turkish', 'astrology-suite-freeastroapi'),
+            'ru' => __('Russian', 'astrology-suite-freeastroapi'),
+            'vi' => __('Vietnamese', 'astrology-suite-freeastroapi'),
+            'pt' => __('Portuguese', 'astrology-suite-freeastroapi'),
+        ];
+    }
+
+    public static function sanitize_natal_response_language($value): string
+    {
+        $candidate = self::normalize_natal_language_code((string) $value);
+        if ($candidate === '') {
+            $candidate = sanitize_key((string) $value);
+        }
+
+        return array_key_exists($candidate, self::supported_natal_response_languages()) ? $candidate : 'auto';
+    }
+
     public static function sanitize_frontend_language($value): string
     {
         $candidate = sanitize_key((string) $value);
@@ -997,6 +1096,49 @@ JSON
     private static function normalize_frontend_language(string $value): string
     {
         return self::sanitize_frontend_language($value);
+    }
+
+    private static function normalize_natal_language_code(string $value): string
+    {
+        $candidate = strtolower(str_replace('_', '-', trim(sanitize_text_field($value))));
+        if ($candidate === '') {
+            return '';
+        }
+
+        $base = explode('-', $candidate)[0];
+        return array_key_exists($base, self::supported_natal_response_languages()) && $base !== 'auto' ? $base : '';
+    }
+
+    private static function resolve_natal_response_language(?string $requested = null): string
+    {
+        $setting = self::sanitize_natal_response_language((string) self::get_option_value(self::OPTION_NATAL_RESPONSE_LANGUAGE, 'auto'));
+        if ($setting !== 'auto') {
+            return $setting;
+        }
+
+        $requested_lang = $requested !== null ? self::normalize_natal_language_code($requested) : '';
+        return $requested_lang !== '' ? $requested_lang : 'en';
+    }
+
+    private static function apply_natal_response_language(array $payload, ?string $requested = null): array
+    {
+        $candidate = $requested;
+        if ($candidate === null) {
+            $candidate = isset($payload['language']) ? (string) $payload['language'] : (isset($payload['lang']) ? (string) $payload['lang'] : null);
+        }
+
+        $language = self::resolve_natal_response_language($candidate);
+        unset($payload['language']);
+        $payload['lang'] = $language;
+
+        if (isset($payload['interpretation']) && is_array($payload['interpretation']) && ($payload['interpretation']['enable'] ?? true)) {
+            $payload['interpretation']['language'] = $language;
+            if ($language !== 'en') {
+                $payload['interpretation']['style'] = 'improved';
+            }
+        }
+
+        return $payload;
     }
 
     public static function sanitize_chart_theme($value): string
@@ -1180,6 +1322,18 @@ JSON
             'default' => '',
         ]);
 
+        register_setting($api_group, self::OPTION_BOT_GEMINI_API_KEY, [
+            'type' => 'string',
+            'sanitize_callback' => [__CLASS__, 'sanitize_bot_gemini_api_key'],
+            'default' => '',
+        ]);
+
+        register_setting($api_group, self::OPTION_BOT_GEMINI_MODEL, [
+            'type' => 'string',
+            'sanitize_callback' => [__CLASS__, 'sanitize_bot_gemini_model'],
+            'default' => self::DEFAULT_GEMINI_MODEL,
+        ]);
+
         register_setting($api_group, self::OPTION_PUBLIC_CALCULATIONS, [
             'type' => 'boolean',
             'sanitize_callback' => [__CLASS__, 'sanitize_public_calculations'],
@@ -1189,6 +1343,12 @@ JSON
         register_setting($api_group, self::OPTION_FRONTEND_LANGUAGE, [
             'type' => 'string',
             'sanitize_callback' => [__CLASS__, 'sanitize_frontend_language'],
+            'default' => 'auto',
+        ]);
+
+        register_setting($api_group, self::OPTION_NATAL_RESPONSE_LANGUAGE, [
+            'type' => 'string',
+            'sanitize_callback' => [__CLASS__, 'sanitize_natal_response_language'],
             'default' => 'auto',
         ]);
 
@@ -1377,6 +1537,28 @@ JSON
         register_setting($ephemeris_group, self::OPTION_EPHEMERIS_INGRESS_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#1d4ed8']);
         register_setting($ephemeris_group, self::OPTION_EPHEMERIS_STATION_COLOR, ['type' => 'string', 'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'], 'default' => '#a16207']);
 
+        foreach (self::horoscope_display_defaults() as $option => $default) {
+            register_setting($style_group, $option, [
+                'type' => 'boolean',
+                'sanitize_callback' => static fn($v): bool => (bool) $v,
+                'default' => $default,
+            ]);
+        }
+        foreach (self::horoscope_style_defaults() as $option => $default) {
+            register_setting($style_group, $option, [
+                'type' => 'string',
+                'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'],
+                'default' => $default,
+            ]);
+        }
+        foreach (self::bot_style_defaults() as $option => $default) {
+            register_setting($style_group, $option, [
+                'type' => 'string',
+                'sanitize_callback' => [__CLASS__, 'sanitize_hex_color_value'],
+                'default' => $default,
+            ]);
+        }
+
         register_setting($typography_group, self::OPTION_TYPO_H2, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 28]);
         register_setting($typography_group, self::OPTION_TYPO_H3, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 22]);
         register_setting($typography_group, self::OPTION_TYPO_H4, ['type' => 'integer', 'sanitize_callback' => [__CLASS__, 'sanitize_typography_size'], 'default' => 18]);
@@ -1403,6 +1585,22 @@ JSON
         );
 
         add_settings_field(
+            self::OPTION_BOT_GEMINI_API_KEY,
+            __('Bot Gemini API key', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_bot_gemini_api_key_field'],
+            'openastro-settings',
+            'openastro_settings_main'
+        );
+
+        add_settings_field(
+            self::OPTION_BOT_GEMINI_MODEL,
+            __('Bot Gemini model', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_bot_gemini_model_field'],
+            'openastro-settings',
+            'openastro_settings_main'
+        );
+
+        add_settings_field(
             self::OPTION_PUBLIC_CALCULATIONS,
             __('Public calculations', 'astrology-suite-freeastroapi'),
             [__CLASS__, 'render_public_calculations_field'],
@@ -1414,6 +1612,14 @@ JSON
             self::OPTION_FRONTEND_LANGUAGE,
             __('Frontend language', 'astrology-suite-freeastroapi'),
             [__CLASS__, 'render_frontend_language_field'],
+            'openastro-settings',
+            'openastro_settings_main'
+        );
+
+        add_settings_field(
+            self::OPTION_NATAL_RESPONSE_LANGUAGE,
+            __('Natal response language', 'astrology-suite-freeastroapi'),
+            [__CLASS__, 'render_natal_response_language_field'],
             'openastro-settings',
             'openastro_settings_main'
         );
@@ -1562,6 +1768,31 @@ JSON
         add_settings_field(self::OPTION_STYLE_MODAL_TEXT_COLOR, __('Modal text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_modal_text_color_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_MODAL_BORDER_COLOR, __('Modal border color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_modal_border_color_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field(self::OPTION_STYLE_MODAL_ACCENT_COLOR, __('Modal link/accent color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_modal_accent_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_style_group_horoscope', __('Daily Sign Horoscope', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_group_horoscope'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_horoscope_preview', __('Preview', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_style_preview_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_horoscope_sections', __('Visible sections', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_sections_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_CARD_BG_COLOR, __('Horoscope card background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_card_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_CARD_TEXT_COLOR, __('Horoscope card text', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_card_text_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_CARD_BORDER_COLOR, __('Horoscope card border', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_card_border_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_THEME_BG_COLOR, __('Theme badge background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_theme_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_THEME_TEXT_COLOR, __('Theme badge text', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_theme_text_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_CHIP_BG_COLOR, __('Keyword/highlight chip background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_chip_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_CHIP_TEXT_COLOR, __('Keyword/highlight chip text', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_chip_text_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_CHIP_BORDER_COLOR, __('Keyword/highlight chip border', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_chip_border_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_TILE_BG_COLOR, __('Score/lucky tile background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_tile_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_TILE_TEXT_COLOR, __('Score/lucky tile text', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_tile_text_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_TILE_BORDER_COLOR, __('Score/lucky tile border', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_tile_border_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_HOROSCOPE_ACCENT_COLOR, __('Score explanation accent', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_horoscope_accent_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_style_group_bot', __('Astrology Bot', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_style_group_bot'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field('openastro_bot_preview', __('Preview', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_style_preview_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_SHELL_BG_COLOR, __('Bot shell background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_shell_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_HEADER_BG_COLOR, __('Bot header background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_header_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_SCREEN_BG_COLOR, __('Bot screen background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_screen_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_ACCENT_COLOR, __('Bot accent color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_accent_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_USER_BUBBLE_BG_COLOR, __('User bubble background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_user_bubble_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_USER_BUBBLE_TEXT_COLOR, __('User bubble text', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_user_bubble_text_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_ASSISTANT_BUBBLE_BG_COLOR, __('Assistant bubble background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_assistant_bubble_bg_color_field'], 'openastro-settings', 'openastro_style_settings');
+        add_settings_field(self::OPTION_BOT_ASSISTANT_BUBBLE_TEXT_COLOR, __('Assistant bubble text', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_bot_assistant_bubble_text_color_field'], 'openastro-settings', 'openastro_style_settings');
         add_settings_field('openastro_ephemeris_preview', __('Preview', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_style_preview_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
         add_settings_field(self::OPTION_EPHEMERIS_TABLE_BG_COLOR, __('Table background', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_bg_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
         add_settings_field(self::OPTION_EPHEMERIS_TABLE_TEXT_COLOR, __('Table text color', 'astrology-suite-freeastroapi'), [__CLASS__, 'render_ephemeris_table_text_color_field'], 'openastro-settings', 'openastro_ephemeris_style_settings');
@@ -1647,7 +1878,7 @@ JSON
             $args['astrology_suite_migrated'] = max(0, (int) $migrated_param);
         }
 
-        wp_safe_redirect(add_query_arg($args, admin_url('admin.php')));
+        wp_safe_redirect(add_query_arg($args, admin_url('options-general.php')));
         exit;
     }
 
@@ -1658,6 +1889,28 @@ JSON
         echo '<p class="description">' . esc_html($has_key ? __('A FreeAstroAPI key is currently saved. Leave this field blank to keep it, or enter a new key to replace it.', 'astrology-suite-freeastroapi') : __('No FreeAstroAPI key is currently saved. Enter one to enable chart/report calculations.', 'astrology-suite-freeastroapi')) . '</p>';
         echo '<p class="description">' . esc_html__('Get a free API key from freeastroapi.com.', 'astrology-suite-freeastroapi') . '</p>';
         echo '<p class="description">' . esc_html__('The key is used only in server-to-server requests to FreeAstroAPI. It is not exposed to frontend visitors.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_bot_gemini_api_key_field(): void
+    {
+        $has_key = (string) self::get_option_value(self::OPTION_BOT_GEMINI_API_KEY, '') !== '';
+        echo '<input type="password" class="regular-text" name="' . esc_attr(self::OPTION_BOT_GEMINI_API_KEY) . '" value="" autocomplete="new-password" placeholder="' . esc_attr__('Leave blank to keep current key', 'astrology-suite-freeastroapi') . '" />';
+        echo '<p class="description">' . esc_html($has_key ? __('A Gemini API key is currently saved for the Astrology Bot. Leave this field blank to keep it, or enter a new key to replace it.', 'astrology-suite-freeastroapi') : __('No Gemini API key is currently saved. Add one to enable the Astrology Bot block and shortcode.', 'astrology-suite-freeastroapi')) . '</p>';
+        echo '<p class="description">' . wp_kses(
+            sprintf(
+                /* translators: %s: Google AI Studio API key docs URL. */
+                __('The bot uses your saved FreeAstroAPI key for MCP tool calls and this Gemini key for the answer layer. Get a Gemini key from <a href="%s" target="_blank" rel="noopener">Google AI Studio</a>. Neither key is exposed to visitors.', 'astrology-suite-freeastroapi'),
+                esc_url(self::GEMINI_API_KEY_DOCS_URL)
+            ),
+            ['a' => ['href' => [], 'target' => [], 'rel' => []]]
+        ) . '</p>';
+    }
+
+    public static function render_bot_gemini_model_field(): void
+    {
+        $value = (string) self::get_option_value(self::OPTION_BOT_GEMINI_MODEL, self::DEFAULT_GEMINI_MODEL);
+        echo '<input type="text" class="regular-text" name="' . esc_attr(self::OPTION_BOT_GEMINI_MODEL) . '" value="' . esc_attr($value) . '" />';
+        echo '<p class="description">' . esc_html__('Default follows the FreeAstroAPI bot starter. Change it only if your Google AI Studio account uses a different Gemini model name.', 'astrology-suite-freeastroapi') . '</p>';
     }
 
     public static function render_public_calculations_field(): void
@@ -1676,8 +1929,20 @@ JSON
             echo '<option value="' . esc_attr($code) . '" ' . selected($value, $code, false) . '>' . esc_html($label) . '</option>';
         }
         echo '</select>';
-        echo '<p class="description">' . esc_html__('Localizes the widget interface, labels, buttons, validation messages, and report section headings only. FreeAstroAPI interpretation blocks are displayed exactly as the API returns them; unsupported interpretation languages are not requested.', 'astrology-suite-freeastroapi') . '</p>';
+        echo '<p class="description">' . esc_html__('Localizes the widget interface, labels, buttons, validation messages, and report section headings. Natal interpretation response language is controlled separately below.', 'astrology-suite-freeastroapi') . '</p>';
         echo '<p class="description">' . esc_html__('Shortcodes can override this per widget with language="vi", language="fr", language="es", language="de", or language="pt".', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_natal_response_language_field(): void
+    {
+        $value = self::sanitize_natal_response_language((string) self::get_option_value(self::OPTION_NATAL_RESPONSE_LANGUAGE, 'auto'));
+        echo '<select name="' . esc_attr(self::OPTION_NATAL_RESPONSE_LANGUAGE) . '">';
+        foreach (self::supported_natal_response_languages() as $code => $label) {
+            echo '<option value="' . esc_attr($code) . '" ' . selected($value, $code, false) . '>' . esc_html($label) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">' . esc_html__('Controls the language requested for natal interpretation responses. Auto follows the widget UI language when it is supported by FreeAstroAPI, otherwise English is used.', 'astrology-suite-freeastroapi') . '</p>';
+        echo '<p class="description">' . esc_html__('Translated natal interpretations use FreeAstroAPI style="improved"; the plugin forces improved automatically for translated responses because other styles are English-only.', 'astrology-suite-freeastroapi') . '</p>';
     }
 
     public static function add_privacy_policy_content(): void
@@ -1688,7 +1953,8 @@ JSON
 
         $policy = '<p>' . esc_html__('Astrology Suite for FreeAstroAPI connects to FreeAstroAPI to autocomplete cities and generate astrology calculations.', 'astrology-suite-freeastroapi') . '</p>';
         $policy .= '<p>' . esc_html__('When someone types into the city field, the plugin sends the typed city query and optional country filter to FreeAstroAPI over HTTPS so matching cities and timezones can be returned.', 'astrology-suite-freeastroapi') . '</p>';
-        $policy .= '<p>' . esc_html__('When a visitor submits a natal chart, report, simple-sign, or ephemeris form while public calculations are enabled, or when an authenticated editor submits while public calculations are disabled, the plugin sends the submitted astrology data and calculation options to FreeAstroAPI over HTTPS. This may include the optional name field, birth date, birth time, city name, latitude, longitude, timezone, interpretation settings, selected ephemeris month/year, selected bodies, zodiac type, and the requested calculation mode. The site’s configured FreeAstroAPI key is also sent in the server-to-server request header and is not exposed to visitors.', 'astrology-suite-freeastroapi') . '</p>';
+        $policy .= '<p>' . esc_html__('When a visitor submits a natal chart, report, simple-sign, ephemeris, daily horoscope, personalized horoscope, or astrology bot form while public calculations are enabled, or when an authenticated editor submits while public calculations are disabled, the plugin sends the submitted astrology data and calculation options to FreeAstroAPI over HTTPS. This may include the optional name field, birth date, birth time, city name, latitude, longitude, timezone, interpretation settings, selected ephemeris month/year, selected bodies, zodiac type, horoscope sign/date/timezone, horoscope target date, chat message/history/profile, and the requested calculation mode. The site\'s configured FreeAstroAPI key is also sent in the server-to-server request header and is not exposed to visitors.', 'astrology-suite-freeastroapi') . '</p>';
+        $policy .= '<p>' . esc_html__('For the Astrology Bot, the plugin may also send the visitor\'s chat message, recent chat history, selected system, and submitted birth profile to Google Gemini over HTTPS so the chat answer can be generated. The configured Gemini API key is used only server-to-server and is not exposed to visitors.', 'astrology-suite-freeastroapi') . '</p>';
         $policy .= '<p>' . esc_html__('The plugin does not store visitor birth data in WordPress by default. The optional “Past inputs” feature stores the most recent successful requests in the visitor’s own browser local storage only.', 'astrology-suite-freeastroapi') . '</p>';
         $policy .= '<p>' . sprintf(
             wp_kses(
@@ -2762,6 +3028,388 @@ JSON
         echo '<input type="color" name="' . esc_attr(self::OPTION_STYLE_MODAL_ACCENT_COLOR) . '" value="' . esc_attr($value) . '" />';
     }
 
+    public static function render_style_group_horoscope(): void
+    {
+        echo '<p><strong>' . esc_html__('Horoscope display and styling', 'astrology-suite-freeastroapi') . '</strong></p>';
+        echo '<p class="description">' . esc_html__('Controls which parts of the Daily Sign and Personalized Horoscope results are shown and how their cards, chips, tiles, and explanation accents look.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    private static function horoscope_display_defaults(): array
+    {
+        return [
+            self::OPTION_HOROSCOPE_SHOW_THEME => true,
+            self::OPTION_HOROSCOPE_SHOW_SUMMARY => true,
+            self::OPTION_HOROSCOPE_SHOW_SCORES => true,
+            self::OPTION_HOROSCOPE_SHOW_SCORE_FACTORS => true,
+            self::OPTION_HOROSCOPE_SHOW_PERSONAL_CONTEXT => true,
+            self::OPTION_HOROSCOPE_SHOW_LUCKY => true,
+            self::OPTION_HOROSCOPE_SHOW_GUIDANCE => true,
+            self::OPTION_HOROSCOPE_SHOW_ASTRO => true,
+        ];
+    }
+
+    private static function horoscope_display_labels(): array
+    {
+        return [
+            self::OPTION_HOROSCOPE_SHOW_THEME => __('Theme and keywords', 'astrology-suite-freeastroapi'),
+            self::OPTION_HOROSCOPE_SHOW_SUMMARY => __('Main interpretation text', 'astrology-suite-freeastroapi'),
+            self::OPTION_HOROSCOPE_SHOW_SCORES => __('Score grid', 'astrology-suite-freeastroapi'),
+            self::OPTION_HOROSCOPE_SHOW_SCORE_FACTORS => __('Expandable score explanations', 'astrology-suite-freeastroapi'),
+            self::OPTION_HOROSCOPE_SHOW_PERSONAL_CONTEXT => __('Personal transits and timing', 'astrology-suite-freeastroapi'),
+            self::OPTION_HOROSCOPE_SHOW_LUCKY => __('Lucky attributes', 'astrology-suite-freeastroapi'),
+            self::OPTION_HOROSCOPE_SHOW_GUIDANCE => __('Do / avoid / supporting insights', 'astrology-suite-freeastroapi'),
+            self::OPTION_HOROSCOPE_SHOW_ASTRO => __('Moon and sky highlights', 'astrology-suite-freeastroapi'),
+        ];
+    }
+
+    private static function horoscope_style_defaults(): array
+    {
+        return [
+            self::OPTION_HOROSCOPE_CARD_BG_COLOR => '#ffffff',
+            self::OPTION_HOROSCOPE_CARD_TEXT_COLOR => '#111111',
+            self::OPTION_HOROSCOPE_CARD_BORDER_COLOR => '#e5e7eb',
+            self::OPTION_HOROSCOPE_THEME_BG_COLOR => '#111827',
+            self::OPTION_HOROSCOPE_THEME_TEXT_COLOR => '#ffffff',
+            self::OPTION_HOROSCOPE_CHIP_BG_COLOR => '#f9fafb',
+            self::OPTION_HOROSCOPE_CHIP_TEXT_COLOR => '#111111',
+            self::OPTION_HOROSCOPE_CHIP_BORDER_COLOR => '#e5e7eb',
+            self::OPTION_HOROSCOPE_TILE_BG_COLOR => '#f9fafb',
+            self::OPTION_HOROSCOPE_TILE_TEXT_COLOR => '#111111',
+            self::OPTION_HOROSCOPE_TILE_BORDER_COLOR => '#e5e7eb',
+            self::OPTION_HOROSCOPE_ACCENT_COLOR => '#2563eb',
+        ];
+    }
+
+    private static function horoscope_style_variable_map(): array
+    {
+        return [
+            self::OPTION_HOROSCOPE_CARD_BG_COLOR => '--openastro-horoscope-card-bg',
+            self::OPTION_HOROSCOPE_CARD_TEXT_COLOR => '--openastro-horoscope-card-text',
+            self::OPTION_HOROSCOPE_CARD_BORDER_COLOR => '--openastro-horoscope-card-border',
+            self::OPTION_HOROSCOPE_THEME_BG_COLOR => '--openastro-horoscope-theme-bg',
+            self::OPTION_HOROSCOPE_THEME_TEXT_COLOR => '--openastro-horoscope-theme-text',
+            self::OPTION_HOROSCOPE_CHIP_BG_COLOR => '--openastro-horoscope-chip-bg',
+            self::OPTION_HOROSCOPE_CHIP_TEXT_COLOR => '--openastro-horoscope-chip-text',
+            self::OPTION_HOROSCOPE_CHIP_BORDER_COLOR => '--openastro-horoscope-chip-border',
+            self::OPTION_HOROSCOPE_TILE_BG_COLOR => '--openastro-horoscope-tile-bg',
+            self::OPTION_HOROSCOPE_TILE_TEXT_COLOR => '--openastro-horoscope-tile-text',
+            self::OPTION_HOROSCOPE_TILE_BORDER_COLOR => '--openastro-horoscope-tile-border',
+            self::OPTION_HOROSCOPE_ACCENT_COLOR => '--openastro-horoscope-accent',
+        ];
+    }
+
+    private static function horoscope_style_inline_vars(): string
+    {
+        $defaults = self::horoscope_style_defaults();
+        $vars = [];
+        foreach (self::horoscope_style_variable_map() as $option => $var_name) {
+            $value = (string) self::get_option_value($option, $defaults[$option]);
+            $vars[$var_name] = $value;
+            $vars[str_replace('--openastro-', '--astrology-suite-', $var_name)] = $value;
+        }
+
+        $style = [];
+        foreach ($vars as $key => $value) {
+            $style[] = $key . ': ' . $value;
+        }
+
+        return implode('; ', $style);
+    }
+
+    private static function bot_style_defaults(): array
+    {
+        return [
+            self::OPTION_BOT_SHELL_BG_COLOR => '#101014',
+            self::OPTION_BOT_HEADER_BG_COLOR => '#17231f',
+            self::OPTION_BOT_SCREEN_BG_COLOR => '#0f1f1b',
+            self::OPTION_BOT_ACCENT_COLOR => '#facc15',
+            self::OPTION_BOT_USER_BUBBLE_BG_COLOR => '#d8f7c5',
+            self::OPTION_BOT_USER_BUBBLE_TEXT_COLOR => '#142117',
+            self::OPTION_BOT_ASSISTANT_BUBBLE_BG_COLOR => '#202c28',
+            self::OPTION_BOT_ASSISTANT_BUBBLE_TEXT_COLOR => '#f1f5f9',
+        ];
+    }
+
+    private static function bot_style_variable_map(): array
+    {
+        return [
+            self::OPTION_BOT_SHELL_BG_COLOR => '--openastro-bot-shell-bg',
+            self::OPTION_BOT_HEADER_BG_COLOR => '--openastro-bot-header-bg',
+            self::OPTION_BOT_SCREEN_BG_COLOR => '--openastro-bot-screen-bg',
+            self::OPTION_BOT_ACCENT_COLOR => '--openastro-bot-accent',
+            self::OPTION_BOT_USER_BUBBLE_BG_COLOR => '--openastro-bot-user-bubble-bg',
+            self::OPTION_BOT_USER_BUBBLE_TEXT_COLOR => '--openastro-bot-user-bubble-text',
+            self::OPTION_BOT_ASSISTANT_BUBBLE_BG_COLOR => '--openastro-bot-assistant-bubble-bg',
+            self::OPTION_BOT_ASSISTANT_BUBBLE_TEXT_COLOR => '--openastro-bot-assistant-bubble-text',
+        ];
+    }
+
+    private static function bot_style_inline_vars(): string
+    {
+        $defaults = self::bot_style_defaults();
+        $vars = [];
+        foreach (self::bot_style_variable_map() as $option => $var_name) {
+            $value = (string) self::get_option_value($option, $defaults[$option]);
+            $vars[$var_name] = $value;
+            $vars[str_replace('--openastro-', '--astrology-suite-', $var_name)] = $value;
+        }
+
+        $style = [];
+        foreach ($vars as $key => $value) {
+            $style[] = $key . ': ' . $value;
+        }
+
+        return implode('; ', $style);
+    }
+
+    public static function render_horoscope_style_preview_field(): void
+    {
+        self::render_horoscope_style_preview_admin_assets();
+        ?>
+        <div class="wp-block-astrology-suite-widget astrology-suite-horoscope-style-preview" style="<?php echo esc_attr(self::horoscope_style_inline_vars()); ?>">
+            <section class="openastro-card openastro-horoscope-card">
+                <span class="openastro-ephemeris-eyebrow openastro-horoscope-eyebrow"><?php esc_html_e('Daily Horoscope', 'astrology-suite-freeastroapi'); ?></span>
+                <h3><span class="openastro-astro-glyph">x</span><?php esc_html_e('Aries - 2026-06-10', 'astrology-suite-freeastroapi'); ?></h3>
+                <div class="openastro-horoscope-theme-row">
+                    <span class="openastro-horoscope-theme"><?php esc_html_e('Energy', 'astrology-suite-freeastroapi'); ?></span>
+                    <div class="openastro-horoscope-keywords">
+                        <span><?php esc_html_e('Boldness', 'astrology-suite-freeastroapi'); ?></span>
+                        <span><?php esc_html_e('Initiative', 'astrology-suite-freeastroapi'); ?></span>
+                        <span><?php esc_html_e('Clarity', 'astrology-suite-freeastroapi'); ?></span>
+                    </div>
+                </div>
+                <p class="openastro-horoscope-summary"><?php esc_html_e('A concise daily interpretation appears here, using the content returned by FreeAstroAPI.', 'astrology-suite-freeastroapi'); ?></p>
+                <div class="openastro-horoscope-scores">
+                    <span><strong><?php esc_html_e('Overall', 'astrology-suite-freeastroapi'); ?></strong>82</span>
+                    <span><strong><?php esc_html_e('Love', 'astrology-suite-freeastroapi'); ?></strong>80</span>
+                    <span><strong><?php esc_html_e('Career', 'astrology-suite-freeastroapi'); ?></strong>84</span>
+                </div>
+                <details class="openastro-horoscope-score-factors" open>
+                    <summary><?php esc_html_e('Why these scores?', 'astrology-suite-freeastroapi'); ?></summary>
+                    <div><section><h4><?php esc_html_e('Career', 'astrology-suite-freeastroapi'); ?></h4><p><?php esc_html_e('Score explanations use the same card accent and text styling.', 'astrology-suite-freeastroapi'); ?></p></section></div>
+                </details>
+                <div class="openastro-horoscope-personal">
+                    <h4><?php esc_html_e('Personal timing', 'astrology-suite-freeastroapi'); ?></h4>
+                    <div class="openastro-horoscope-personal-meta">
+                        <span><?php esc_html_e('Action & Energy', 'astrology-suite-freeastroapi'); ?></span>
+                        <span><?php esc_html_e('Confidence: 95', 'astrology-suite-freeastroapi'); ?></span>
+                    </div>
+                    <section>
+                        <h5><?php esc_html_e('Top personal transits', 'astrology-suite-freeastroapi'); ?></h5>
+                        <div class="openastro-horoscope-transits">
+                            <article>
+                                <h6><?php esc_html_e('Mars Square Natal True Node', 'astrology-suite-freeastroapi'); ?></h6>
+                                <p class="openastro-horoscope-transit-meta"><?php esc_html_e('Score 94.7 · Exact 17:35', 'astrology-suite-freeastroapi'); ?></p>
+                                <p><?php esc_html_e('Personal transit interpretation text uses the tile, chip, and accent styles configured below.', 'astrology-suite-freeastroapi'); ?></p>
+                            </article>
+                        </div>
+                    </section>
+                    <section class="openastro-horoscope-timing">
+                        <h5><?php esc_html_e('Timing context', 'astrology-suite-freeastroapi'); ?></h5>
+                        <p><strong><?php esc_html_e('Next shift:', 'astrology-suite-freeastroapi'); ?></strong> <?php esc_html_e('Mars Square Natal True Node exact', 'astrology-suite-freeastroapi'); ?></p>
+                    </section>
+                </div>
+                <dl class="openastro-horoscope-lucky">
+                    <div><dt><?php esc_html_e('Color', 'astrology-suite-freeastroapi'); ?></dt><dd><?php esc_html_e('Red', 'astrology-suite-freeastroapi'); ?></dd></div>
+                    <div><dt><?php esc_html_e('Time', 'astrology-suite-freeastroapi'); ?></dt><dd>11am - 4pm</dd></div>
+                </dl>
+                <div class="openastro-horoscope-astro">
+                    <span><?php esc_html_e('Moon Sign: Aries', 'astrology-suite-freeastroapi'); ?></span>
+                    <span><?php esc_html_e('Last Quarter', 'astrology-suite-freeastroapi'); ?></span>
+                </div>
+            </section>
+        </div>
+        <p class="description"><?php esc_html_e('Preview starts with saved horoscope colors and updates as you edit the controls below. Section visibility applies to Daily Sign and Personalized Horoscope results on the frontend after saving.', 'astrology-suite-freeastroapi'); ?></p>
+        <?php
+    }
+
+    public static function render_horoscope_sections_field(): void
+    {
+        $defaults = self::horoscope_display_defaults();
+        echo '<fieldset class="astrology-suite-horoscope-section-grid">';
+        foreach (self::horoscope_display_labels() as $option => $label) {
+            $value = (bool) self::get_option_value($option, $defaults[$option]);
+            echo '<label><input type="checkbox" name="' . esc_attr($option) . '" value="1" ' . checked($value, true, false) . ' /> ' . esc_html($label) . '</label>';
+        }
+        echo '</fieldset>';
+        echo '<p class="description">' . esc_html__('Unchecked sections are hidden from Daily Sign and Personalized Horoscope blocks and shortcodes.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_horoscope_card_bg_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_CARD_BG_COLOR, '#ffffff'); }
+    public static function render_horoscope_card_text_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_CARD_TEXT_COLOR, '#111111'); }
+    public static function render_horoscope_card_border_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_CARD_BORDER_COLOR, '#e5e7eb'); }
+    public static function render_horoscope_theme_bg_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_THEME_BG_COLOR, '#111827'); }
+    public static function render_horoscope_theme_text_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_THEME_TEXT_COLOR, '#ffffff'); }
+    public static function render_horoscope_chip_bg_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_CHIP_BG_COLOR, '#f9fafb'); }
+    public static function render_horoscope_chip_text_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_CHIP_TEXT_COLOR, '#111111'); }
+    public static function render_horoscope_chip_border_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_CHIP_BORDER_COLOR, '#e5e7eb'); }
+    public static function render_horoscope_tile_bg_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_TILE_BG_COLOR, '#f9fafb'); }
+    public static function render_horoscope_tile_text_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_TILE_TEXT_COLOR, '#111111'); }
+    public static function render_horoscope_tile_border_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_TILE_BORDER_COLOR, '#e5e7eb'); }
+    public static function render_horoscope_accent_color_field(): void { self::render_color_field(self::OPTION_HOROSCOPE_ACCENT_COLOR, '#2563eb'); }
+
+    public static function render_style_group_bot(): void
+    {
+        echo '<p><strong>' . esc_html__('Astrology Bot display and styling', 'astrology-suite-freeastroapi') . '</strong></p>';
+        echo '<p class="description">' . esc_html__('Controls the embedded Western/Vedic chat component. The API tab stores the required Gemini key; your existing FreeAstroAPI key is used for astrology tool calls.', 'astrology-suite-freeastroapi') . '</p>';
+    }
+
+    public static function render_bot_style_preview_field(): void
+    {
+        self::render_bot_style_preview_admin_assets();
+        ?>
+        <div class="wp-block-astrology-suite-widget astrology-suite-bot-style-preview" style="<?php echo esc_attr(self::bot_style_inline_vars()); ?>">
+            <div class="openastro-bot-phone">
+                <div class="openastro-bot-header">
+                    <div>
+                        <span class="openastro-bot-kicker"><?php esc_html_e('Astrology Bot', 'astrology-suite-freeastroapi'); ?></span>
+                        <h3><?php esc_html_e('Western Astrologer', 'astrology-suite-freeastroapi'); ?></h3>
+                    </div>
+                    <span class="openastro-bot-status-pill"><?php esc_html_e('Online', 'astrology-suite-freeastroapi'); ?></span>
+                </div>
+                <div class="openastro-bot-screen">
+                    <div class="openastro-bot-message openastro-bot-message-assistant">
+                        <p><?php esc_html_e('Add your birth details, then ask a chart or timing question.', 'astrology-suite-freeastroapi'); ?></p>
+                    </div>
+                    <div class="openastro-bot-message openastro-bot-message-user">
+                        <p><?php esc_html_e('What should I focus on today?', 'astrology-suite-freeastroapi'); ?></p>
+                    </div>
+                </div>
+                <div class="openastro-bot-composer">
+                    <input type="text" class="openastro-bot-input" value="<?php echo esc_attr__('Ask the astrologer...', 'astrology-suite-freeastroapi'); ?>" readonly />
+                    <button type="button" class="openastro-bot-send"><?php esc_html_e('Send', 'astrology-suite-freeastroapi'); ?></button>
+                </div>
+            </div>
+        </div>
+        <p class="description"><?php esc_html_e('Preview starts with saved bot colors and updates as you edit the controls below. The frontend bot uses the same color variables after saving.', 'astrology-suite-freeastroapi'); ?></p>
+        <?php
+    }
+
+    public static function render_bot_shell_bg_color_field(): void { self::render_color_field(self::OPTION_BOT_SHELL_BG_COLOR, '#101014'); }
+    public static function render_bot_header_bg_color_field(): void { self::render_color_field(self::OPTION_BOT_HEADER_BG_COLOR, '#17231f'); }
+    public static function render_bot_screen_bg_color_field(): void { self::render_color_field(self::OPTION_BOT_SCREEN_BG_COLOR, '#0f1f1b'); }
+    public static function render_bot_accent_color_field(): void { self::render_color_field(self::OPTION_BOT_ACCENT_COLOR, '#facc15'); }
+    public static function render_bot_user_bubble_bg_color_field(): void { self::render_color_field(self::OPTION_BOT_USER_BUBBLE_BG_COLOR, '#d8f7c5'); }
+    public static function render_bot_user_bubble_text_color_field(): void { self::render_color_field(self::OPTION_BOT_USER_BUBBLE_TEXT_COLOR, '#142117'); }
+    public static function render_bot_assistant_bubble_bg_color_field(): void { self::render_color_field(self::OPTION_BOT_ASSISTANT_BUBBLE_BG_COLOR, '#202c28'); }
+    public static function render_bot_assistant_bubble_text_color_field(): void { self::render_color_field(self::OPTION_BOT_ASSISTANT_BUBBLE_TEXT_COLOR, '#f1f5f9'); }
+
+    private static function render_horoscope_style_preview_admin_assets(): void
+    {
+        static $printed = false;
+        if ($printed) {
+            return;
+        }
+        $printed = true;
+        ?>
+        <style>
+            .astrology-suite-horoscope-style-preview {
+                max-width: 920px;
+            }
+            .astrology-suite-horoscope-section-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 8px 16px;
+                max-width: 920px;
+            }
+            .astrology-suite-horoscope-section-grid label {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+        </style>
+        <script>
+            (function () {
+                function initAstrologySuiteHoroscopeStylePreview() {
+                    var preview = document.querySelector('.astrology-suite-horoscope-style-preview');
+                    if (!preview) {
+                        return;
+                    }
+                    var fields = <?php echo wp_json_encode(self::horoscope_style_variable_map()); ?>;
+                    function setPreviewVariable(name, value) {
+                        preview.style.setProperty(name, value);
+                        if (name.indexOf('--openastro-') === 0) {
+                            preview.style.setProperty(name.replace('--openastro-', '--astrology-suite-'), value);
+                        }
+                    }
+                    Object.keys(fields).forEach(function (name) {
+                        var field = document.querySelector('[name="' + name + '"]');
+                        if (!field) {
+                            return;
+                        }
+                        var update = function () {
+                            if (field.value) {
+                                setPreviewVariable(fields[name], field.value);
+                            }
+                        };
+                        field.addEventListener('input', update);
+                        field.addEventListener('change', update);
+                    });
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initAstrologySuiteHoroscopeStylePreview);
+                } else {
+                    initAstrologySuiteHoroscopeStylePreview();
+                }
+            })();
+        </script>
+        <?php
+    }
+
+    private static function render_bot_style_preview_admin_assets(): void
+    {
+        static $printed = false;
+        if ($printed) {
+            return;
+        }
+        $printed = true;
+        ?>
+        <style>
+            .astrology-suite-bot-style-preview {
+                max-width: 520px;
+            }
+            .astrology-suite-bot-style-preview .openastro-bot-phone {
+                max-width: 430px;
+            }
+        </style>
+        <script>
+            (function () {
+                function initAstrologySuiteBotStylePreview() {
+                    var preview = document.querySelector('.astrology-suite-bot-style-preview');
+                    if (!preview) {
+                        return;
+                    }
+                    var fields = <?php echo wp_json_encode(self::bot_style_variable_map()); ?>;
+                    function setPreviewVariable(name, value) {
+                        preview.style.setProperty(name, value);
+                        if (name.indexOf('--openastro-') === 0) {
+                            preview.style.setProperty(name.replace('--openastro-', '--astrology-suite-'), value);
+                        }
+                    }
+                    Object.keys(fields).forEach(function (name) {
+                        var field = document.querySelector('[name="' + name + '"]');
+                        if (!field) {
+                            return;
+                        }
+                        var update = function () {
+                            if (field.value) {
+                                setPreviewVariable(fields[name], field.value);
+                            }
+                        };
+                        field.addEventListener('input', update);
+                        field.addEventListener('change', update);
+                    });
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initAstrologySuiteBotStylePreview);
+                } else {
+                    initAstrologySuiteBotStylePreview();
+                }
+            })();
+        </script>
+        <?php
+    }
+
     private static function ephemeris_style_defaults(): array
     {
         return [
@@ -3070,7 +3718,7 @@ JSON
             <h1><?php esc_html_e('Astrology Suite for FreeAstroAPI Settings', 'astrology-suite-freeastroapi'); ?></h1>
             <h2 class="nav-tab-wrapper">
                 <?php foreach ($tabs as $slug => $label) : ?>
-                    <?php $tab_url = add_query_arg(['page' => self::SETTINGS_PAGE_SLUG, 'tab' => $slug], admin_url('admin.php')); ?>
+                    <?php $tab_url = add_query_arg(['page' => self::SETTINGS_PAGE_SLUG, 'tab' => $slug], admin_url('options-general.php')); ?>
                     <a href="<?php echo esc_url($tab_url); ?>" class="nav-tab <?php echo $active_tab === $slug ? 'nav-tab-active' : ''; ?>">
                         <?php echo esc_html($label); ?>
                     </a>
@@ -3092,7 +3740,7 @@ JSON
                     <li><?php esc_html_e('Search for "Astrology Suite" in the block inserter.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Choose a block, configure any sidebar options, and publish the page.', 'astrology-suite-freeastroapi'); ?></li>
                 </ol>
-                <p><?php esc_html_e('Natal blocks render birth-data forms with city autocomplete, explicit 24-hour time controls, an "I don\'t know my birth time" option, a local "Past inputs..." selector, and a Generate button. When birth time is unknown, chart/report requests send time_known:false and omit angle/house-dependent sections when the API omits them. The ephemeris block renders month controls, body filters, optional city autocomplete for local points, and a monthly table.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Natal blocks render birth-data forms with city autocomplete, explicit 24-hour time controls, an "I don\'t know my birth time" option, a local "Past inputs..." selector, and a Generate button. When birth time is unknown, chart/report requests send time_known:false and omit angle/house-dependent sections when the API omits them. The ephemeris block renders month controls, body filters, optional city autocomplete for local points, and a monthly table. The daily horoscope block renders sign, date, and timezone controls. The personalized horoscope block renders birth details, city autocomplete, target date, and a personalized daily horoscope result. The astrology bot block embeds a Western/Vedic chat component with birth profile collection.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <h3><?php esc_html_e('Available Blocks', 'astrology-suite-freeastroapi'); ?></h3>
                 <table class="widefat striped" style="max-width: 920px;">
@@ -3135,18 +3783,30 @@ JSON
                             <td><code>astrology-suite/ephemeris</code></td>
                             <td><?php esc_html_e('Monthly ephemeris table with selectable bodies, tropical/sidereal mode, optional city, and CSV download.', 'astrology-suite-freeastroapi'); ?></td>
                         </tr>
+                        <tr>
+                            <td><code>astrology-suite/daily-horoscope</code></td>
+                            <td><?php esc_html_e('Daily sign horoscope with scores, lucky attributes, guidance, and sky highlights returned by FreeAstroAPI.', 'astrology-suite-freeastroapi'); ?></td>
+                        </tr>
+                        <tr>
+                            <td><code>astrology-suite/personalized-horoscope</code></td>
+                            <td><?php esc_html_e('Personalized daily horoscope from submitted birth details, current sky timing, scores, and personal transit context.', 'astrology-suite-freeastroapi'); ?></td>
+                        </tr>
+                        <tr>
+                            <td><code>astrology-suite/astrology-bot</code></td>
+                            <td><?php esc_html_e('Western/Vedic astrology chat component with birth profile collection and server-side FreeAstroAPI + Gemini requests.', 'astrology-suite-freeastroapi'); ?></td>
+                        </tr>
                     </tbody>
                 </table>
                 <p><?php esc_html_e('Simple-sign blocks include sidebar controls for interpretation text and interpretation style. The supported style values are "improved" and "poetic".', 'astrology-suite-freeastroapi'); ?></p>
 
                 <h3><?php esc_html_e('Code Block Example (Page Code Editor)', 'astrology-suite-freeastroapi'); ?></h3>
-                <pre><code><?php echo esc_html("<!-- wp:astrology-suite/chart-only /-->\n<!-- wp:astrology-suite/report-only /-->\n<!-- wp:astrology-suite/chart-report /-->\n<!-- wp:astrology-suite/simple-sign-sun {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-moon {\"includeInterpretation\":false,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-rising {\"includeInterpretation\":true,\"interpretationStyle\":\"poetic\"} /-->\n<!-- wp:astrology-suite/simple-sign-midheaven {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/ephemeris /-->"); ?></code></pre>
+                <pre><code><?php echo esc_html("<!-- wp:astrology-suite/chart-only /-->\n<!-- wp:astrology-suite/report-only /-->\n<!-- wp:astrology-suite/chart-report /-->\n<!-- wp:astrology-suite/simple-sign-sun {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-moon {\"includeInterpretation\":false,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/simple-sign-rising {\"includeInterpretation\":true,\"interpretationStyle\":\"poetic\"} /-->\n<!-- wp:astrology-suite/simple-sign-midheaven {\"includeInterpretation\":true,\"interpretationStyle\":\"improved\"} /-->\n<!-- wp:astrology-suite/ephemeris /-->\n<!-- wp:astrology-suite/daily-horoscope /-->\n<!-- wp:astrology-suite/personalized-horoscope /-->\n<!-- wp:astrology-suite/astrology-bot /-->"); ?></code></pre>
 
                 <h3><?php esc_html_e('Shortcode Examples', 'astrology-suite-freeastroapi'); ?></h3>
                 <p><?php esc_html_e('Use shortcodes in classic editor content, shortcode blocks, widgets, or template areas that run WordPress shortcodes.', 'astrology-suite-freeastroapi'); ?></p>
-                <pre><code><?php echo esc_html("[astrology_suite mode=\"chart-report\"]\n[astrology_suite mode=\"chart-report\" language=\"vi\"]\n[astrology_suite_chart_only]\n[astrology_suite_report_only]\n[astrology_suite_chart_report]\n[astrology_suite_simple_sign_sun include_interpretation=\"true\" interpretation_style=\"improved\"]\n[astrology_suite_simple_sign_moon include_interpretation=\"false\"]\n[astrology_suite_simple_sign_rising include_interpretation=\"true\" interpretation_style=\"poetic\"]\n[astrology_suite_simple_sign_midheaven]\n[astrology_suite_ephemeris]"); ?></code></pre>
-                <p><?php esc_html_e('Supported shortcode modes are chart-only, report-only, chart-report, simple-sign-sun, simple-sign-moon, simple-sign-rising, simple-sign-midheaven, and ephemeris.', 'astrology-suite-freeastroapi'); ?></p>
-                <p><?php esc_html_e('Shortcode attributes: mode, include_interpretation, interpretation_style, language/lang, and class. Supported language values are auto, en, vi, fr, es, de, and pt. The language attribute localizes plugin UI text only; FreeAstroAPI interpretation blocks are displayed in the language returned by the API. Legacy openastro, openastro_*, freeastro, and freeastro_* shortcode aliases are also registered.', 'astrology-suite-freeastroapi'); ?></p>
+                <pre><code><?php echo esc_html("[astrology_suite mode=\"chart-report\"]\n[astrology_suite mode=\"chart-report\" language=\"vi\"]\n[astrology_suite_chart_only]\n[astrology_suite_report_only]\n[astrology_suite_chart_report]\n[astrology_suite_simple_sign_sun include_interpretation=\"true\" interpretation_style=\"improved\"]\n[astrology_suite_simple_sign_moon include_interpretation=\"false\"]\n[astrology_suite_simple_sign_rising include_interpretation=\"true\" interpretation_style=\"poetic\"]\n[astrology_suite_simple_sign_midheaven]\n[astrology_suite_ephemeris]\n[astrology_suite_daily_horoscope]\n[astrology_suite_personalized_horoscope]\n[astrology_suite_astrology_bot]"); ?></code></pre>
+                <p><?php esc_html_e('Supported shortcode modes are chart-only, report-only, chart-report, simple-sign-sun, simple-sign-moon, simple-sign-rising, simple-sign-midheaven, ephemeris, daily-horoscope, personalized-horoscope, and astrology-bot.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Shortcode attributes: mode, include_interpretation, interpretation_style, language/lang, and class. Supported UI language values are auto, en, vi, fr, es, de, and pt. The API tab controls the natal interpretation response language separately. Legacy openastro, openastro_*, freeastro, and freeastro_* shortcode aliases are also registered.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <h3><?php esc_html_e('All Available Shortcodes', 'astrology-suite-freeastroapi'); ?></h3>
                 <p><?php esc_html_e('Use the Astrology Suite shortcodes for new pages. The OpenAstro and FreeAstro names are legacy aliases kept for older content.', 'astrology-suite-freeastroapi'); ?></p>
@@ -3216,6 +3876,30 @@ JSON
                         'freeastro' => ['[freeastro mode="ephemeris"]', '[freeastro_ephemeris]'],
                         'output' => __('Monthly ephemeris table with selectable bodies, tropical/sidereal mode, optional city, and CSV download.', 'astrology-suite-freeastroapi'),
                     ],
+                    [
+                        'mode' => 'daily-horoscope',
+                        'recommended' => '[astrology_suite mode="daily-horoscope"]',
+                        'named' => '[astrology_suite_daily_horoscope]',
+                        'openastro' => ['[openastro mode="daily-horoscope"]', '[openastro_daily_horoscope]'],
+                        'freeastro' => ['[freeastro mode="daily-horoscope"]', '[freeastro_daily_horoscope]'],
+                        'output' => __('Daily sign horoscope with scores, lucky attributes, guidance, and sky highlights returned by FreeAstroAPI.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'personalized-horoscope',
+                        'recommended' => '[astrology_suite mode="personalized-horoscope"]',
+                        'named' => '[astrology_suite_personalized_horoscope]',
+                        'openastro' => ['[openastro mode="personalized-horoscope"]', '[openastro_personalized_horoscope]'],
+                        'freeastro' => ['[freeastro mode="personalized-horoscope"]', '[freeastro_personalized_horoscope]'],
+                        'output' => __('Personalized daily horoscope from submitted birth details, current sky timing, scores, and personal transit context.', 'astrology-suite-freeastroapi'),
+                    ],
+                    [
+                        'mode' => 'astrology-bot',
+                        'recommended' => '[astrology_suite mode="astrology-bot"]',
+                        'named' => '[astrology_suite_astrology_bot]',
+                        'openastro' => ['[openastro mode="astrology-bot"]', '[openastro_astrology_bot]'],
+                        'freeastro' => ['[freeastro mode="astrology-bot"]', '[freeastro_astrology_bot]'],
+                        'output' => __('Western/Vedic chat component with birth profile collection and server-side FreeAstroAPI + Gemini requests.', 'astrology-suite-freeastroapi'),
+                    ],
                 ];
                 ?>
                 <table class="widefat striped" style="max-width: 1180px;">
@@ -3255,11 +3939,11 @@ JSON
                 <hr />
                 <h2><?php esc_html_e('Settings Tabs', 'astrology-suite-freeastroapi'); ?></h2>
                 <ul>
-                    <li><?php esc_html_e('API stores the FreeAstroAPI key used for server-to-server requests, controls whether public visitors can use calculation forms, and sets the frontend widget language.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('API stores the FreeAstroAPI key, the Astrology Bot Gemini key/model, public calculation access, frontend widget language, and natal interpretation response language.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Report controls interpretation length, report limits, angle sections, birth context, planet aspect links, aspect glyphs, thematic interpretation, chart print button, and tables.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Custom Chart controls SVG/PNG chart theme bodies, FreeAstroAPI-generated preview cards, and optional advanced chart_config JSON.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Objects controls which extra points are requested and rendered in chart/report modes.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><?php esc_html_e('Style controls container border/background transparency, Past inputs visibility/colors, input, button, label, focus, and glyph colors/radii.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Style controls container border/background transparency, Past inputs visibility/colors, input, button, label, focus, glyph colors/radii, and Astrology Bot chat colors.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Ephemeris Style controls the monthly table preview, grid, header, badge, today row, retrograde, ingress, and station colors.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('Typography controls heading, body, table, input, button, and helper text sizes.', 'astrology-suite-freeastroapi'); ?></li>
                 </ul>
@@ -3279,9 +3963,45 @@ JSON
                     <?php
                     echo wp_kses(
                         sprintf(
+                            /* translators: %s: FreeAstroAPI astrology bot URL. */
+                            __('The astrology bot block is based on the <a href="%s" target="_blank" rel="noopener">FreeAstroAPI Astrology Bot</a> experience and runs inside this plugin through a WordPress REST proxy.', 'astrology-suite-freeastroapi'),
+                            esc_url(self::UPSTREAM_ASTROLOGY_BOT_URL)
+                        ),
+                        ['a' => ['href' => [], 'target' => [], 'rel' => []]]
+                    );
+                    ?>
+                </p>
+                <p>
+                    <?php
+                    echo wp_kses(
+                        sprintf(
                             /* translators: %s: FreeAstroAPI ephemeris docs URL. */
                             __('The ephemeris block uses the <a href="%s" target="_blank" rel="noopener">FreeAstroAPI Western Ephemeris endpoint</a> with table grid output for monthly planetary tables.', 'astrology-suite-freeastroapi'),
                             esc_url(self::UPSTREAM_EPHEMERIS_DOCS_URL)
+                        ),
+                        ['a' => ['href' => [], 'target' => [], 'rel' => []]]
+                    );
+                    ?>
+                </p>
+                <p>
+                    <?php
+                    echo wp_kses(
+                        sprintf(
+                            /* translators: %s: FreeAstroAPI daily sign docs URL. */
+                            __('The daily horoscope block uses the <a href="%s" target="_blank" rel="noopener">FreeAstroAPI Daily Sign Horoscope endpoint</a>, which is suitable for free-plan daily engagement features.', 'astrology-suite-freeastroapi'),
+                            esc_url(self::UPSTREAM_DAILY_SIGN_DOCS_URL)
+                        ),
+                        ['a' => ['href' => [], 'target' => [], 'rel' => []]]
+                    );
+                    ?>
+                </p>
+                <p>
+                    <?php
+                    echo wp_kses(
+                        sprintf(
+                            /* translators: %s: FreeAstroAPI daily personal docs URL. */
+                            __('The personalized horoscope block uses the <a href="%s" target="_blank" rel="noopener">FreeAstroAPI Daily Personal Horoscope endpoint</a> for birth-data-based daily timing and transit context.', 'astrology-suite-freeastroapi'),
+                            esc_url(self::UPSTREAM_DAILY_PERSONAL_DOCS_URL)
                         ),
                         ['a' => ['href' => [], 'target' => [], 'rel' => []]]
                     );
@@ -3356,6 +4076,24 @@ Simple Sign Elements:
 .astrology-suite-simple-sign-value
 .astrology-suite-simple-sign-interpretation
 
+Daily Horoscope Elements:
+.astrology-suite-horoscope-form
+.astrology-suite-horoscope-card
+.astrology-suite-horoscope-theme-row
+.astrology-suite-horoscope-theme
+.astrology-suite-horoscope-keywords
+.astrology-suite-horoscope-summary
+.astrology-suite-horoscope-scores
+.astrology-suite-horoscope-score-factors
+.astrology-suite-horoscope-personal
+.astrology-suite-horoscope-personal-meta
+.astrology-suite-horoscope-transits
+.astrology-suite-horoscope-transit-meta
+.astrology-suite-horoscope-timing
+.astrology-suite-horoscope-lucky
+.astrology-suite-horoscope-guidance
+.astrology-suite-horoscope-astro
+
 Chart/Print Elements:
 .astrology-suite-chart-card
 .astrology-suite-chart
@@ -3373,7 +4111,21 @@ Ephemeris Elements:
 .astrology-suite-ephemeris-table
 .astrology-suite-ephemeris-row
 .astrology-suite-ephemeris-cell
-.astrology-suite-ephemeris-glyph"
+.astrology-suite-ephemeris-glyph
+
+Astrology Bot Elements:
+.astrology-suite-bot
+.astrology-suite-bot-phone
+.astrology-suite-bot-header
+.astrology-suite-bot-contacts
+.astrology-suite-bot-contact
+.astrology-suite-bot-profile
+.astrology-suite-bot-messages
+.astrology-suite-bot-message
+.astrology-suite-bot-quick
+.astrology-suite-bot-composer
+.astrology-suite-bot-input
+.astrology-suite-bot-send"
                 ); ?></code></pre>
                 <p><?php esc_html_e('Legacy .openastro-* classes and --openastro-* variables remain supported for existing custom CSS.', 'astrology-suite-freeastroapi'); ?></p>
                 <p><a href="<?php echo esc_url($css_doc_url); ?>" target="_blank" rel="noopener"><?php esc_html_e('Open full CSS class docs (Markdown)', 'astrology-suite-freeastroapi'); ?></a></p>
@@ -3386,16 +4138,21 @@ Ephemeris Elements:
                     <li><code>POST /wp-json/astrology-suite/v1/natal/chart-svg</code> - <?php esc_html_e('natal wheel SVG generation using the selected Custom Chart request body. Used by chart-only and chart-report modes.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><code>POST /wp-json/astrology-suite/v1/western/simple-signs</code> - <?php esc_html_e('simple sign calculation for Sun, Moon, Rising, or Midheaven modes.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><code>POST /wp-json/astrology-suite/v1/western/ephemeris</code> - <?php esc_html_e('monthly ephemeris grid calculation. Used by the ephemeris mode.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><code>POST /wp-json/astrology-suite/v1/western/daily-horoscope</code> - <?php esc_html_e('daily sign horoscope proxy. Used by the daily-horoscope mode.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><code>POST /wp-json/astrology-suite/v1/western/personalized-horoscope</code> - <?php esc_html_e('personalized daily horoscope proxy. Used by the personalized-horoscope mode.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><code>POST /wp-json/astrology-suite/v1/astrology-bot/chat</code> - <?php esc_html_e('astrology bot chat proxy. Used by the astrology-bot mode.', 'astrology-suite-freeastroapi'); ?></li>
                 </ul>
                 <p><?php esc_html_e('Calculation routes are available to public visitors when public calculations are enabled in the API tab. If disabled, they require a logged-in user who can edit posts. The matching /wp-json/openastro/v1/* routes remain available as legacy aliases.', 'astrology-suite-freeastroapi'); ?></p>
 
                 <hr />
                 <h2><?php esc_html_e('External Service Disclosure', 'astrology-suite-freeastroapi'); ?></h2>
-                <p><?php esc_html_e('Astrology Suite connects to FreeAstroAPI to search cities and generate astrology calculations.', 'astrology-suite-freeastroapi'); ?></p>
+                <p><?php esc_html_e('Astrology Suite connects to FreeAstroAPI to search cities and generate astrology calculations. The Astrology Bot also connects to Google Gemini to generate chat answers.', 'astrology-suite-freeastroapi'); ?></p>
                 <ul>
                     <li><?php esc_html_e('City autocomplete sends the typed city query and optional country filter to FreeAstroAPI over HTTPS when a visitor types at least two characters into the city field.', 'astrology-suite-freeastroapi'); ?></li>
-                    <li><?php esc_html_e('Natal chart, report, chart SVG, simple-sign, and ephemeris requests send submitted astrology data and calculation options to FreeAstroAPI over HTTPS when a visitor submits the form while public calculations are enabled, or when an editor submits while public calculations are disabled.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Natal chart, report, chart SVG, simple-sign, ephemeris, daily sign horoscope, personalized horoscope, and astrology bot requests send submitted astrology data and calculation options to FreeAstroAPI over HTTPS when a visitor submits the form while public calculations are enabled, or when an editor submits while public calculations are disabled.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Astrology bot requests may send the chat message, recent chat history, selected Western/Vedic system, and submitted birth profile to FreeAstroAPI MCP and Google Gemini over HTTPS.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('These calculation requests include the site’s configured FreeAstroAPI key in a server-to-server request header. The API key is not sent to the browser.', 'astrology-suite-freeastroapi'); ?></li>
+                    <li><?php esc_html_e('Astrology bot answer requests include the site’s configured Gemini API key in a server-to-server request header. The Gemini API key is not sent to the browser.', 'astrology-suite-freeastroapi'); ?></li>
                     <li><?php esc_html_e('The plugin does not store visitor birth data in WordPress by default. The optional “Past inputs” list is stored only in the visitor’s local browser storage.', 'astrology-suite-freeastroapi'); ?></li>
                 </ul>
                 <p><?php esc_html_e('Public calculations can be turned off in the API tab. When disabled, visitors without editor permissions see an access note instead of the calculation form.', 'astrology-suite-freeastroapi'); ?></p>
@@ -3554,7 +4311,7 @@ Ephemeris Elements:
 
         $redirect = add_query_arg(
             ['page' => self::SETTINGS_PAGE_SLUG, 'astrology_suite_migrated' => (string) $updated],
-            admin_url('admin.php')
+            admin_url('options-general.php')
         );
         wp_safe_redirect($redirect);
         exit;
@@ -3590,6 +4347,24 @@ Ephemeris Elements:
             register_rest_route($namespace, '/western/ephemeris', [
                 'methods' => \WP_REST_Server::CREATABLE,
                 'callback' => [__CLASS__, 'ephemeris_calculate'],
+                'permission_callback' => [__CLASS__, 'calculation_permission'],
+            ]);
+
+            register_rest_route($namespace, '/western/daily-horoscope', [
+                'methods' => \WP_REST_Server::CREATABLE,
+                'callback' => [__CLASS__, 'daily_horoscope_calculate'],
+                'permission_callback' => [__CLASS__, 'calculation_permission'],
+            ]);
+
+            register_rest_route($namespace, '/western/personalized-horoscope', [
+                'methods' => \WP_REST_Server::CREATABLE,
+                'callback' => [__CLASS__, 'personalized_horoscope_calculate'],
+                'permission_callback' => [__CLASS__, 'calculation_permission'],
+            ]);
+
+            register_rest_route($namespace, '/astrology-bot/chat', [
+                'methods' => \WP_REST_Server::CREATABLE,
+                'callback' => [__CLASS__, 'astrology_bot_chat'],
                 'permission_callback' => [__CLASS__, 'calculation_permission'],
             ]);
         }
@@ -3734,6 +4509,588 @@ Ephemeris Elements:
         }
 
         return self::request('POST', '/ephemeris/calculate', $payload);
+    }
+
+    public static function daily_horoscope_calculate(\WP_REST_Request $request)
+    {
+        if (!self::ratelimit('daily_horoscope_calculate')) {
+            return new \WP_Error('rate_limited', 'Too many requests.', ['status' => 429]);
+        }
+
+        $payload = self::sanitize_daily_horoscope_payload($request->get_json_params());
+        if (is_wp_error($payload)) {
+            return $payload;
+        }
+
+        $params = [
+            'sign' => $payload['sign'],
+            'date' => $payload['date'],
+        ];
+        if ($payload['tz_str'] !== '') {
+            $params['tz_str'] = $payload['tz_str'];
+        }
+
+        return self::request('GET', '/horoscope/daily/sign?' . http_build_query($params), null, false, true, self::UPSTREAM_V2_BASE_URL);
+    }
+
+    public static function personalized_horoscope_calculate(\WP_REST_Request $request)
+    {
+        if (!self::ratelimit('personalized_horoscope_calculate')) {
+            return new \WP_Error('rate_limited', 'Too many requests.', ['status' => 429]);
+        }
+
+        $payload = self::sanitize_personalized_horoscope_payload($request->get_json_params());
+        if (is_wp_error($payload)) {
+            return $payload;
+        }
+
+        return self::request('POST', '/horoscope/daily/personal', $payload, false, true, self::UPSTREAM_V3_BASE_URL);
+    }
+
+    public static function astrology_bot_chat(\WP_REST_Request $request)
+    {
+        if (!self::ratelimit('astrology_bot_chat')) {
+            return new \WP_Error('rate_limited', 'Too many requests.', ['status' => 429]);
+        }
+
+        $started = microtime(true);
+        $payload = self::sanitize_astrology_bot_request($request->get_json_params());
+        if (is_wp_error($payload)) {
+            return $payload;
+        }
+
+        $plan = $payload['system'] === 'vedic'
+            ? self::build_vedic_bot_plan($payload['message'], $payload['profile'])
+            : self::build_western_bot_plan($payload['message'], $payload['profile'], $payload['language']);
+
+        if (!empty($plan['needsBirthData'])) {
+            return [
+                'reply' => __('Share your birth date, exact birth time, and birth city first, then I can ground the answer in your chart.', 'astrology-suite-freeastroapi'),
+                'usedTools' => [],
+                'needsBirthData' => true,
+                'latencyMs' => (int) round((microtime(true) - $started) * 1000),
+            ];
+        }
+
+        $raw = null;
+        if (!empty($plan['toolName']) && isset($plan['args']) && is_array($plan['args'])) {
+            $raw = self::call_mcp_tool($payload['system'], (string) $plan['toolName'], $plan['args']);
+            if (is_wp_error($raw)) {
+                return $raw;
+            }
+        }
+
+        $facts = $raw !== null ? self::compact_bot_facts(isset($plan['toolName']) ? (string) $plan['toolName'] : '', $raw) : '';
+        $reply = self::generate_bot_reply([
+            'system' => $payload['system'],
+            'message' => $payload['message'],
+            'history' => $payload['history'],
+            'intent' => (string) ($plan['intent'] ?? 'general'),
+            'toolName' => isset($plan['toolName']) ? (string) $plan['toolName'] : '',
+            'facts' => $facts,
+            'language' => $payload['language'],
+        ]);
+        if (is_wp_error($reply)) {
+            return $reply;
+        }
+
+        return [
+            'reply' => $reply,
+            'usedTools' => !empty($plan['toolName']) ? [(string) $plan['toolName']] : [],
+            'latencyMs' => (int) round((microtime(true) - $started) * 1000),
+        ];
+    }
+
+    private static function sanitize_astrology_bot_request($payload)
+    {
+        if (!is_array($payload)) {
+            return new \WP_Error('invalid_payload', 'Payload must be an object.', ['status' => 400]);
+        }
+
+        $system = isset($payload['system']) ? sanitize_key((string) $payload['system']) : 'western';
+        if (!in_array($system, ['western', 'vedic'], true)) {
+            $system = 'western';
+        }
+
+        $message = isset($payload['message']) ? trim(sanitize_textarea_field((string) $payload['message'])) : '';
+        if ($message === '' || strlen($message) > 800) {
+            return new \WP_Error('invalid_payload', 'Message must be 1-800 characters.', ['status' => 400]);
+        }
+
+        $history = [];
+        if (isset($payload['history']) && is_array($payload['history'])) {
+            foreach (array_slice($payload['history'], -8) as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $role = isset($item['role']) ? sanitize_key((string) $item['role']) : '';
+                $content = isset($item['content']) ? trim(sanitize_textarea_field((string) $item['content'])) : '';
+                if (!in_array($role, ['user', 'assistant'], true) || $content === '') {
+                    continue;
+                }
+                $history[] = [
+                    'role' => $role,
+                    'content' => substr($content, 0, 1200),
+                ];
+            }
+        }
+
+        $profile = null;
+        if (isset($payload['profile']) && is_array($payload['profile'])) {
+            $profile = self::sanitize_astrology_bot_profile($payload['profile']);
+            if (is_wp_error($profile)) {
+                return $profile;
+            }
+        }
+
+        return [
+            'system' => $system,
+            'message' => $message,
+            'history' => $history,
+            'profile' => $profile,
+            'language' => self::resolve_natal_response_language(
+                isset($payload['language']) ? (string) $payload['language'] : (isset($payload['lang']) ? (string) $payload['lang'] : null)
+            ),
+        ];
+    }
+
+    private static function sanitize_astrology_bot_profile(array $profile)
+    {
+        $birth_date = isset($profile['birthDate']) ? trim((string) $profile['birthDate']) : '';
+        $birth_time = isset($profile['birthTime']) ? trim((string) $profile['birthTime']) : '';
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
+            return new \WP_Error('invalid_payload', 'Profile birthDate must be YYYY-MM-DD.', ['status' => 400]);
+        }
+        if (!preg_match('/^\d{2}:\d{2}$/', $birth_time)) {
+            return new \WP_Error('invalid_payload', 'Profile birthTime must be HH:MM.', ['status' => 400]);
+        }
+
+        [$year, $month, $day] = array_map('intval', explode('-', $birth_date));
+        [$hour, $minute] = array_map('intval', explode(':', $birth_time));
+        if ($year < 1800 || $year > 2100 || $month < 1 || $month > 12 || $day < 1 || $day > 31 || $hour < 0 || $hour > 23 || $minute < 0 || $minute > 59) {
+            return new \WP_Error('invalid_payload', 'Profile birth date or time is out of range.', ['status' => 400]);
+        }
+
+        $city = isset($profile['city']) && is_array($profile['city']) ? $profile['city'] : [];
+        $city_name = isset($city['name']) ? sanitize_text_field((string) $city['name']) : '';
+        $timezone = isset($city['timezone']) ? sanitize_text_field((string) $city['timezone']) : (isset($city['tz_str']) ? sanitize_text_field((string) $city['tz_str']) : '');
+        $lat = isset($city['lat']) ? (float) $city['lat'] : 999;
+        $lng = isset($city['lng']) ? (float) $city['lng'] : 999;
+        if ($city_name === '' || $timezone === '' || $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+            return new \WP_Error('invalid_payload', 'Profile city must include name, lat, lng, and timezone.', ['status' => 400]);
+        }
+
+        return [
+            'birthDate' => $birth_date,
+            'birthTime' => $birth_time,
+            'city' => [
+                'name' => $city_name,
+                'lat' => $lat,
+                'lng' => $lng,
+                'timezone' => $timezone,
+                'country_code' => isset($city['country_code']) ? sanitize_text_field((string) $city['country_code']) : '',
+                'country_name' => isset($city['country_name']) ? sanitize_text_field((string) $city['country_name']) : '',
+                'state' => isset($city['state']) ? sanitize_text_field((string) $city['state']) : '',
+                'display_name' => isset($city['display_name']) ? sanitize_text_field((string) $city['display_name']) : '',
+            ],
+        ];
+    }
+
+    private static function classify_western_bot_message(string $message): string
+    {
+        $value = strtolower($message);
+        if (preg_match('/\b(moon|lunar|new moon|full moon|waxing|waning|eclipse)\b/', $value)) return 'moon';
+        if (preg_match('/\b(today|daily|tomorrow|right now|currently|forecast)\b/', $value)) return 'daily';
+        if (preg_match('/\b(transit|saturn return|jupiter return|upcoming|this month|timing|when will)\b/', $value)) return 'transit';
+        if (preg_match('/\b(sun sign|moon sign|rising sign|ascendant|what sign)\b/', $value)) return 'sign';
+        if (preg_match('/\b(natal|birth chart|personality|purpose|career|love|houses?|aspects?|placements?)\b/', $value)) return 'natal';
+        return 'general';
+    }
+
+    private static function split_bot_birth(array $profile): array
+    {
+        [$year, $month, $day] = array_map('intval', explode('-', $profile['birthDate']));
+        [$hour, $minute] = array_map('intval', explode(':', $profile['birthTime']));
+        return compact('year', 'month', 'day', 'hour', 'minute');
+    }
+
+    private static function western_bot_natal(array $profile, string $language): array
+    {
+        return array_merge(self::split_bot_birth($profile), [
+            'time_known' => true,
+            'city' => $profile['city']['name'],
+            'lat' => $profile['city']['lat'],
+            'lng' => $profile['city']['lng'],
+            'tz_str' => $profile['city']['timezone'],
+            'house_system' => 'placidus',
+            'zodiac_type' => 'tropical',
+            'lang' => $language,
+            'interpretation' => [
+                'enable' => true,
+                'style' => 'improved',
+                'language' => $language,
+            ],
+        ]);
+    }
+
+    private static function vedic_bot_birth(array $profile): array
+    {
+        return array_merge(self::split_bot_birth($profile), [
+            'city' => $profile['city']['name'],
+            'lat' => $profile['city']['lat'],
+            'lng' => $profile['city']['lng'],
+            'tz_str' => $profile['city']['timezone'],
+            'ayanamsha' => 'lahiri',
+            'house_system' => 'whole_sign',
+            'node_type' => 'mean',
+        ]);
+    }
+
+    private static function current_bot_date_parts(): array
+    {
+        $now = current_datetime();
+        return [
+            'year' => (int) $now->format('Y'),
+            'month' => (int) $now->format('n'),
+            'date' => $now->format('Y-m-d'),
+        ];
+    }
+
+    private static function build_western_bot_plan(string $message, ?array $profile, string $language): array
+    {
+        $intent = self::classify_western_bot_message($message);
+        if ($intent === 'general') {
+            return ['intent' => $intent, 'toolName' => '', 'args' => null];
+        }
+
+        $now = self::current_bot_date_parts();
+        if ($intent === 'moon') {
+            return [
+                'intent' => $intent,
+                'toolName' => 'v1_moon_month',
+                'args' => [
+                    'year' => $now['year'],
+                    'month' => $now['month'],
+                    'city' => $profile['city']['name'] ?? '',
+                    'lat' => $profile['city']['lat'] ?? null,
+                    'lon' => $profile['city']['lng'] ?? null,
+                    'tz_str' => $profile['city']['timezone'] ?? 'UTC',
+                    'include_zodiac' => true,
+                    'include_rise_set' => false,
+                    'include_visuals' => false,
+                ],
+            ];
+        }
+
+        if ($profile === null) {
+            return ['intent' => $intent, 'toolName' => '', 'args' => null, 'needsBirthData' => true];
+        }
+
+        $natal = self::western_bot_natal($profile, $language);
+        if ($intent === 'daily') {
+            return [
+                'intent' => $intent,
+                'toolName' => 'v2_horoscope_daily_personal',
+                'args' => [
+                    'birth' => array_merge($natal, ['latitude' => $natal['lat'], 'longitude' => $natal['lng']]),
+                    'date' => $now['date'],
+                    'timezone' => $natal['tz_str'],
+                    'tz_str' => $natal['tz_str'],
+                    'locale' => $language,
+                    'include_interpretation_blocks' => true,
+                ],
+            ];
+        }
+
+        if ($intent === 'transit') {
+            return [
+                'intent' => $intent,
+                'toolName' => 'v1_western_transits_timeline',
+                'args' => [
+                    'natal' => $natal,
+                    'year' => $now['year'],
+                    'month' => $now['month'],
+                    'include_houses' => true,
+                ],
+            ];
+        }
+
+        if ($intent === 'sign') {
+            $tool = preg_match('/\b(rising|ascendant)\b/i', $message) ? 'v1_western_signs_rising' : (preg_match('/\bmoon\b/i', $message) ? 'v1_western_signs_moon' : 'v1_western_signs_sun');
+            return ['intent' => $intent, 'toolName' => $tool, 'args' => $natal];
+        }
+
+        return [
+            'intent' => $intent,
+            'toolName' => 'v1_natal_calculate',
+            'args' => [
+                'include_minor' => false,
+                'include_stelliums' => true,
+                'body' => $natal,
+            ],
+        ];
+    }
+
+    private static function build_vedic_bot_plan(string $message, ?array $profile): array
+    {
+        if ($profile === null) {
+            return ['intent' => 'natal', 'toolName' => '', 'args' => null, 'needsBirthData' => true];
+        }
+
+        $value = strtolower($message);
+        $base = self::vedic_bot_birth($profile);
+        if (preg_match('/\b(dasha|mahadasha|antar|vimshottari|period)\b/', $value)) {
+            return ['intent' => 'natal', 'toolName' => 'v1_vedic_dasha', 'args' => array_merge($base, ['levels' => 2])];
+        }
+
+        if (preg_match('/\b(panchang|tithi|nakshatra|muhurta|today|daily)\b/', $value)) {
+            return ['intent' => 'daily', 'toolName' => 'v1_vedic_panchang', 'args' => array_merge(self::split_bot_birth($profile), [
+                'city' => $profile['city']['name'],
+                'lat' => $profile['city']['lat'],
+                'lng' => $profile['city']['lng'],
+                'tz_str' => $profile['city']['timezone'],
+            ])];
+        }
+
+        return [
+            'intent' => 'natal',
+            'toolName' => 'v1_vedic_calculate',
+            'args' => array_merge($base, [
+                'vargas' => [1, 9],
+                'include_yogas' => true,
+                'include_panchang' => false,
+                'include_shadbala' => false,
+                'include_ashtakavarga' => false,
+                'dasha_levels' => 1,
+            ]),
+        ];
+    }
+
+    private static function call_mcp_tool(string $system, string $tool_name, array $args)
+    {
+        $api_key = (string) self::get_option_value(self::OPTION_API_KEY, '');
+        if ($api_key === '') {
+            return new \WP_Error('missing_api_key', 'FreeAstroAPI key is not configured.', ['status' => 500]);
+        }
+
+        $response = wp_remote_post(add_query_arg('scope', $system === 'vedic' ? 'vedic-bot' : 'western-bot', self::UPSTREAM_MCP_URL), [
+            'timeout' => 25,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'x-api-key' => $api_key,
+            ],
+            'body' => wp_json_encode([
+                'jsonrpc' => '2.0',
+                'id' => $system . '-wp-bot-' . wp_generate_uuid4(),
+                'method' => 'tools/call',
+                'params' => [
+                    'name' => $tool_name,
+                    'arguments' => $args,
+                ],
+            ]),
+        ]);
+
+        if (is_wp_error($response)) {
+            return new \WP_Error('upstream_network_error', 'Could not reach FreeAstroAPI MCP.', ['status' => 502]);
+        }
+
+        $status = (int) wp_remote_retrieve_response_code($response);
+        $raw = (string) wp_remote_retrieve_body($response);
+        $decoded = json_decode($raw, true);
+        if ($status < 200 || $status >= 300 || (is_array($decoded) && isset($decoded['error']))) {
+            $message = is_array($decoded) && isset($decoded['error']['message']) ? sanitize_text_field((string) $decoded['error']['message']) : 'FreeAstroAPI MCP tool call failed.';
+            return new \WP_Error('upstream_error', $message, ['status' => $status ?: 502]);
+        }
+        if (!is_array($decoded)) {
+            return new \WP_Error('invalid_response', 'Invalid JSON response from FreeAstroAPI MCP.', ['status' => 502]);
+        }
+
+        $content = $decoded['result']['content'] ?? [];
+        if (is_array($content)) {
+            foreach ($content as $item) {
+                if (is_array($item) && ($item['type'] ?? '') === 'text' && isset($item['text'])) {
+                    $text = (string) $item['text'];
+                    $parsed = json_decode($text, true);
+                    return $parsed !== null ? $parsed : $text;
+                }
+            }
+        }
+
+        return $decoded['result'] ?? [];
+    }
+
+    private static function compact_bot_facts(string $tool_name, $raw): string
+    {
+        if (!is_array($raw)) {
+            return substr((string) $raw, 0, 1600);
+        }
+
+        if ($tool_name === 'v1_moon_month') {
+            $days = [];
+            foreach (array_slice(self::bot_array($raw['days'] ?? []), 0, 8) as $day) {
+                $zodiac = self::bot_record($day['zodiac'] ?? []);
+                $phase = self::bot_record($day['phase'] ?? []);
+                $days[] = self::bot_text($day['calendar_date'] ?? '') . ': Moon in ' . self::bot_text($zodiac['sign'] ?? ($zodiac['sign_id'] ?? '')) . ', ' . self::bot_text($phase['name'] ?? '') . ', illumination ' . self::bot_text($phase['illumination'] ?? '');
+            }
+            return trim('Moon month ' . self::bot_text($raw['month_name'] ?? '') . ' ' . self::bot_text($raw['year'] ?? '') . '. Nearby days: ' . implode('; ', $days) . '.');
+        }
+
+        if (strpos($tool_name, 'vedic') !== false) {
+            $planets = [];
+            foreach (array_slice(self::bot_array($raw['planets'] ?? []), 0, 10) as $planet) {
+                $planets[] = self::bot_text($planet['name'] ?? '') . ': ' . self::bot_text($planet['sign'] ?? '') . ', house ' . self::bot_text($planet['house'] ?? '') . ', ' . self::bot_text($planet['nakshatra'] ?? '');
+            }
+            $parts = [];
+            if (!empty($raw['ascendant'])) $parts[] = 'Ascendant: ' . substr((string) wp_json_encode($raw['ascendant']), 0, 200) . '.';
+            if ($planets !== []) $parts[] = 'Grahas: ' . implode('; ', $planets) . '.';
+            if (!empty($raw['vimshottari_dasha'])) $parts[] = 'Dasha: ' . substr((string) wp_json_encode($raw['vimshottari_dasha']), 0, 900) . '.';
+            if (!empty($raw['tithi']) || !empty($raw['nakshatra'])) $parts[] = 'Panchang: ' . substr((string) wp_json_encode($raw), 0, 900) . '.';
+            return implode("\n", $parts);
+        }
+
+        $data = self::bot_record($raw['data'] ?? $raw);
+        $personal = self::bot_record($data['personal'] ?? []);
+        $astro = self::bot_record($data['astro'] ?? []);
+        $content = self::bot_record($data['content'] ?? []);
+        $planet_source = self::bot_array($raw['planets'] ?? ($data['planets'] ?? []));
+        $planets = [];
+        foreach (array_slice($planet_source, 0, 12) as $planet) {
+            $planets[] = self::bot_text($planet['name'] ?? ($planet['id'] ?? '')) . ': ' . self::bot_text($planet['sign'] ?? ($planet['sign_id'] ?? '')) . ', house ' . self::bot_text($planet['house'] ?? '');
+        }
+
+        $parts = [];
+        if ($planets !== []) $parts[] = 'Planets: ' . implode('; ', $planets) . '.';
+        if (!empty($content['text'])) $parts[] = 'Daily text: ' . self::bot_text($content['text']);
+        if (!empty($astro['moon_sign'])) $parts[] = 'Moon context: ' . substr((string) wp_json_encode($astro['moon_sign']), 0, 400) . '.';
+        if (!empty($personal['transits_top'])) $parts[] = 'Top transits: ' . substr((string) wp_json_encode($personal['transits_top']), 0, 900) . '.';
+        if ($parts === []) $parts[] = substr((string) wp_json_encode($raw), 0, 1600);
+        return implode("\n", $parts);
+    }
+
+    private static function bot_record($value): array
+    {
+        return is_array($value) ? $value : [];
+    }
+
+    private static function bot_array($value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+        $items = [];
+        foreach ($value as $item) {
+            if (is_array($item)) {
+                $items[] = $item;
+            }
+        }
+        return $items;
+    }
+
+    private static function bot_text($value): string
+    {
+        if (is_scalar($value) || $value === null) {
+            return (string) $value;
+        }
+        return substr((string) wp_json_encode($value), 0, 240);
+    }
+
+    private static function bot_language_label(string $language): string
+    {
+        return [
+            'en' => 'English',
+            'fr' => 'French',
+            'es' => 'Spanish',
+            'tr' => 'Turkish',
+            'ru' => 'Russian',
+            'vi' => 'Vietnamese',
+            'pt' => 'Portuguese',
+        ][$language] ?? 'English';
+    }
+
+    private static function generate_bot_reply(array $input)
+    {
+        $gemini_key = (string) self::get_option_value(self::OPTION_BOT_GEMINI_API_KEY, '');
+        if ($gemini_key === '') {
+            return new \WP_Error('missing_gemini_api_key', 'Gemini API key is not configured for the Astrology Bot.', ['status' => 500]);
+        }
+
+        $model = self::sanitize_bot_gemini_model((string) self::get_option_value(self::OPTION_BOT_GEMINI_MODEL, self::DEFAULT_GEMINI_MODEL));
+        $history_lines = [];
+        foreach ($input['history'] as $item) {
+            $history_lines[] = $item['role'] . ': ' . $item['content'];
+        }
+
+        $language_label = self::bot_language_label((string) $input['language']);
+        $prompt = implode("\n\n", array_filter([
+            'You are a ' . ($input['system'] === 'vedic' ? 'Vedic' : 'Western') . ' astrology assistant.',
+            'Answer directly in plain ' . $language_label . '. Do not mention JSON, MCP, tool names, WordPress, or implementation.',
+            'Never invent chart facts. Use only the supplied facts for chart-specific claims.',
+            $history_lines !== [] ? "Recent chat:\n" . implode("\n", $history_lines) : '',
+            'User question: ' . $input['message'],
+            $input['facts'] !== '' ? "Facts:\n" . $input['facts'] : '',
+            'Intent: ' . $input['intent'] . ($input['toolName'] !== '' ? ', ' . $input['toolName'] : ''),
+            'Return exactly JSON: {"answer":"..."}. Keep the answer under 180 words.',
+        ]));
+
+        $response = wp_remote_post(self::GEMINI_API_BASE_URL . '/models/' . rawurlencode($model) . ':generateContent', [
+            'timeout' => 30,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'x-goog-api-key' => $gemini_key,
+            ],
+            'body' => wp_json_encode([
+                'contents' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['text' => $prompt],
+                        ],
+                    ],
+                ],
+                'generationConfig' => [
+                    'maxOutputTokens' => 280,
+                    'temperature' => 0.35,
+                    'responseMimeType' => 'application/json',
+                ],
+            ]),
+        ]);
+
+        if (is_wp_error($response)) {
+            return new \WP_Error('gemini_network_error', 'Could not reach Gemini for the Astrology Bot.', ['status' => 502]);
+        }
+
+        $status = (int) wp_remote_retrieve_response_code($response);
+        $raw = (string) wp_remote_retrieve_body($response);
+        $decoded = json_decode($raw, true);
+        if ($status < 200 || $status >= 300) {
+            $message = is_array($decoded) && isset($decoded['error']['message']) ? sanitize_text_field((string) $decoded['error']['message']) : 'Gemini could not generate a reply.';
+            return new \WP_Error('gemini_error', $message, ['status' => $status ?: 502]);
+        }
+        if (!is_array($decoded)) {
+            return new \WP_Error('invalid_response', 'Invalid JSON response from Gemini.', ['status' => 502]);
+        }
+
+        $output = '';
+        $parts = $decoded['candidates'][0]['content']['parts'] ?? [];
+        if (is_array($parts)) {
+            foreach ($parts as $part) {
+                if (is_array($part) && isset($part['text'])) {
+                    $output .= (string) $part['text'];
+                }
+            }
+        }
+        $output = trim($output);
+        if ($output === '') {
+            return new \WP_Error('empty_response', 'Gemini returned an empty reply.', ['status' => 502]);
+        }
+
+        $json_text = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $output);
+        $parsed = json_decode(trim((string) $json_text), true);
+        if (is_array($parsed) && isset($parsed['answer']) && trim((string) $parsed['answer']) !== '') {
+            return trim((string) $parsed['answer']);
+        }
+
+        return $output;
     }
 
     private static function ephemeris_body_map(): array
@@ -3974,7 +5331,126 @@ Ephemeris Elements:
 
         unset($payload['include_interpretation'], $payload['interpretation_style']);
 
-        return $payload;
+        return self::apply_natal_response_language($payload);
+    }
+
+    private static function sanitize_daily_horoscope_payload($payload)
+    {
+        if (!is_array($payload)) {
+            return new \WP_Error('invalid_payload', 'Payload must be an object.', ['status' => 400]);
+        }
+
+        $sign = isset($payload['sign']) ? sanitize_key((string) $payload['sign']) : '';
+        $allowed_signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
+        if (!in_array($sign, $allowed_signs, true)) {
+            return new \WP_Error('invalid_payload', 'Sign must be one of the 12 zodiac signs.', ['status' => 400]);
+        }
+
+        $date = isset($payload['date']) ? trim((string) $payload['date']) : 'today';
+        if ($date === '') {
+            $date = 'today';
+        }
+        if ($date !== 'today' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return new \WP_Error('invalid_payload', 'Date must be today or YYYY-MM-DD.', ['status' => 400]);
+        }
+
+        $tz_str = isset($payload['tz_str']) ? sanitize_text_field((string) $payload['tz_str']) : '';
+        if ($tz_str !== '' && strlen($tz_str) > 80) {
+            return new \WP_Error('invalid_payload', 'Timezone is too long.', ['status' => 400]);
+        }
+
+        return [
+            'sign' => $sign,
+            'date' => $date,
+            'tz_str' => $tz_str,
+        ];
+    }
+
+    private static function sanitize_personalized_horoscope_payload($payload)
+    {
+        if (!is_array($payload)) {
+            return new \WP_Error('invalid_payload', 'Payload must be an object.', ['status' => 400]);
+        }
+
+        $birth = isset($payload['birth']) && is_array($payload['birth']) ? $payload['birth'] : $payload;
+        $time_known = true;
+        if (array_key_exists('time_known', $birth)) {
+            $parsed_time_known = filter_var($birth['time_known'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $time_known = $parsed_time_known === null ? true : $parsed_time_known;
+        }
+
+        foreach (['year', 'month', 'day', 'lat', 'lng'] as $field) {
+            if (!isset($birth[$field])) {
+                return new \WP_Error('invalid_payload', "Missing birth.{$field}.", ['status' => 400]);
+            }
+        }
+        if ($time_known) {
+            foreach (['hour', 'minute'] as $field) {
+                if (!isset($birth[$field])) {
+                    return new \WP_Error('invalid_payload', "Missing birth.{$field}.", ['status' => 400]);
+                }
+            }
+        }
+
+        $year = (int) $birth['year'];
+        $month = (int) $birth['month'];
+        $day = (int) $birth['day'];
+        $hour = $time_known ? (int) $birth['hour'] : 12;
+        $minute = $time_known ? (int) $birth['minute'] : 0;
+        $lat = (float) $birth['lat'];
+        $lng = (float) $birth['lng'];
+
+        if ($year < 1800 || $year > 2100) return new \WP_Error('invalid_payload', 'Birth year out of range.', ['status' => 400]);
+        if ($month < 1 || $month > 12) return new \WP_Error('invalid_payload', 'Birth month out of range.', ['status' => 400]);
+        if ($day < 1 || $day > 31) return new \WP_Error('invalid_payload', 'Birth day out of range.', ['status' => 400]);
+        if ($time_known && ($hour < 0 || $hour > 23)) return new \WP_Error('invalid_payload', 'Birth hour out of range.', ['status' => 400]);
+        if ($time_known && ($minute < 0 || $minute > 59)) return new \WP_Error('invalid_payload', 'Birth minute out of range.', ['status' => 400]);
+        if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+            return new \WP_Error('invalid_payload', 'Invalid birth lat/lng.', ['status' => 400]);
+        }
+
+        $date = isset($payload['date']) ? trim((string) $payload['date']) : 'today';
+        if ($date === '') {
+            $date = 'today';
+        }
+        if ($date !== 'today' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return new \WP_Error('invalid_payload', 'Date must be today or YYYY-MM-DD.', ['status' => 400]);
+        }
+
+        $tz_str = isset($payload['tz_str']) ? sanitize_text_field((string) $payload['tz_str']) : '';
+        if ($tz_str === '' && isset($birth['tz_str'])) {
+            $tz_str = sanitize_text_field((string) $birth['tz_str']);
+        }
+        if ($tz_str !== '' && strlen($tz_str) > 80) {
+            return new \WP_Error('invalid_payload', 'Timezone is too long.', ['status' => 400]);
+        }
+
+        $body = [
+            'birth' => [
+                'year' => $year,
+                'month' => $month,
+                'day' => $day,
+                'hour' => $hour,
+                'minute' => $minute,
+                'city' => isset($birth['city']) ? sanitize_text_field((string) $birth['city']) : '',
+                'lat' => $lat,
+                'lng' => $lng,
+                'tz_str' => isset($birth['tz_str']) ? sanitize_text_field((string) $birth['tz_str']) : ($tz_str ?: 'AUTO'),
+                'time_known' => $time_known,
+            ],
+            'date' => $date,
+            'include_interpretation_blocks' => !isset($payload['include_interpretation_blocks']) || (bool) $payload['include_interpretation_blocks'],
+        ];
+        if ($tz_str !== '') {
+            $body['tz_str'] = $tz_str;
+        }
+
+        $language = self::resolve_natal_response_language(
+            isset($payload['language']) ? (string) $payload['language'] : (isset($payload['lang']) ? (string) $payload['lang'] : null)
+        );
+        $body['locale'] = $language;
+
+        return $body;
     }
 
     private static function sanitize_payload($payload)
@@ -4034,10 +5510,10 @@ Ephemeris Elements:
         $payload['interpretation'] = ['enable' => true, 'style' => 'improved'];
         $payload['include_minor_aspects'] = !isset($payload['include_minor_aspects']) || (bool) $payload['include_minor_aspects'];
 
-        return $payload;
+        return self::apply_natal_response_language($payload);
     }
 
-    private static function request(string $method, string $path, ?array $body = null, bool $expect_svg = false, bool $include_api_key = true)
+    private static function request(string $method, string $path, ?array $body = null, bool $expect_svg = false, bool $include_api_key = true, ?string $base_url = null)
     {
         $args = [
             'method' => $method,
@@ -4058,7 +5534,7 @@ Ephemeris Elements:
             $args['body'] = wp_json_encode($body);
         }
 
-        $response = wp_remote_request(self::UPSTREAM_BASE_URL . $path, $args);
+        $response = wp_remote_request(($base_url ?: self::UPSTREAM_BASE_URL) . $path, $args);
         if (is_wp_error($response)) {
             return new \WP_Error('upstream_network_error', 'Could not reach upstream API.', ['status' => 502]);
         }
@@ -4360,6 +5836,40 @@ Ephemeris Elements:
                 'retrogradeColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_RETROGRADE_COLOR, '#b91c1c'),
                 'ingressColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_INGRESS_COLOR, '#1d4ed8'),
                 'stationColor' => (string) self::get_option_value(self::OPTION_EPHEMERIS_STATION_COLOR, '#a16207'),
+            ],
+            'horoscope' => [
+                'showTheme' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_THEME, true),
+                'showSummary' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_SUMMARY, true),
+                'showScores' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_SCORES, true),
+                'showScoreFactors' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_SCORE_FACTORS, true),
+                'showPersonalContext' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_PERSONAL_CONTEXT, true),
+                'showLucky' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_LUCKY, true),
+                'showGuidance' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_GUIDANCE, true),
+                'showAstro' => (bool) self::get_option_value(self::OPTION_HOROSCOPE_SHOW_ASTRO, true),
+            ],
+            'horoscopeStyle' => [
+                'cardBgColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_CARD_BG_COLOR, '#ffffff'),
+                'cardTextColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_CARD_TEXT_COLOR, '#111111'),
+                'cardBorderColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_CARD_BORDER_COLOR, '#e5e7eb'),
+                'themeBgColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_THEME_BG_COLOR, '#111827'),
+                'themeTextColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_THEME_TEXT_COLOR, '#ffffff'),
+                'chipBgColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_CHIP_BG_COLOR, '#f9fafb'),
+                'chipTextColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_CHIP_TEXT_COLOR, '#111111'),
+                'chipBorderColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_CHIP_BORDER_COLOR, '#e5e7eb'),
+                'tileBgColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_TILE_BG_COLOR, '#f9fafb'),
+                'tileTextColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_TILE_TEXT_COLOR, '#111111'),
+                'tileBorderColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_TILE_BORDER_COLOR, '#e5e7eb'),
+                'accentColor' => (string) self::get_option_value(self::OPTION_HOROSCOPE_ACCENT_COLOR, '#2563eb'),
+            ],
+            'botStyle' => [
+                'shellBgColor' => (string) self::get_option_value(self::OPTION_BOT_SHELL_BG_COLOR, '#101014'),
+                'headerBgColor' => (string) self::get_option_value(self::OPTION_BOT_HEADER_BG_COLOR, '#17231f'),
+                'screenBgColor' => (string) self::get_option_value(self::OPTION_BOT_SCREEN_BG_COLOR, '#0f1f1b'),
+                'accentColor' => (string) self::get_option_value(self::OPTION_BOT_ACCENT_COLOR, '#facc15'),
+                'userBubbleBgColor' => (string) self::get_option_value(self::OPTION_BOT_USER_BUBBLE_BG_COLOR, '#d8f7c5'),
+                'userBubbleTextColor' => (string) self::get_option_value(self::OPTION_BOT_USER_BUBBLE_TEXT_COLOR, '#142117'),
+                'assistantBubbleBgColor' => (string) self::get_option_value(self::OPTION_BOT_ASSISTANT_BUBBLE_BG_COLOR, '#202c28'),
+                'assistantBubbleTextColor' => (string) self::get_option_value(self::OPTION_BOT_ASSISTANT_BUBBLE_TEXT_COLOR, '#f1f5f9'),
             ],
             'typography' => [
                 'h2' => (int) self::get_option_value(self::OPTION_TYPO_H2, 28),
