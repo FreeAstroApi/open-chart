@@ -12,28 +12,41 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "format": "prettier --check ."
+    "format": "prettier --check .",
+    "dev:vinext": "vite dev --port 3001",
+    "build:vinext": "vite build",
+    "start:vinext": "vite preview",
+    "deploy:vinext": "vinext-cloudflare deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@vinext/cloudflare": "^1.3.3",
     "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-hook-form": "^7.71.2",
+    "react-server-dom-webpack": "^19.3.1",
+    "vinext": "^1.4.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^2.0.0-beta.v.12",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.2.1",
+    "@vitejs/plugin-rsc": "^0.5.39",
     "babel-plugin-react-compiler": "1.0.0",
+    "cf": "^1.0.0-beta.28",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.0.18"
-  }
+    "vite": "^8.3.0",
+    "vitest": "^4.1.12"
+  },
+  "type": "module"
 }
