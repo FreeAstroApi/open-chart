@@ -10,4 +10,4 @@ The existing Node test runner uses a separate Vitest config so the Cloudflare ru
 
 The staging homepage, geo search, and an example natal calculation returned 200. Server secrets were scanned against built client assets and were absent. Application and Workers type checks and added-file lint pass.
 
-Workers Builds is connected to `FreeAstroApi/open-chart`, from the migration branch until this change is reviewed and merged. The build command is `npm run build:vinext` and the deploy command is `npx cf deploy --prebuilt`; preview builds are disabled. The existing `FREE_ASTRO_API_KEY` remains an encrypted Worker secret. Switching the production branch to `main` is the final step after merge.
+Workers Builds is connected to `FreeAstroApi/open-chart` and deploys from `main`. The build command is `npm run build:vinext` and the deploy command is `npx cf deploy --prebuilt`; preview builds are disabled. The existing `FREE_ASTRO_API_KEY` remains an encrypted Worker secret.
