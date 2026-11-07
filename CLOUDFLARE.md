@@ -8,4 +8,6 @@ Provide the existing server environment variables through Cloudflare secret bind
 
 The existing Node test runner uses a separate Vitest config so the Cloudflare runtime plugin does not change test execution. The Vite/Vitest development dependencies are compatible with the migration toolchain.
 
-The staging homepage, geo search, and an example natal calculation returned 200. Server secrets were scanned against built client assets and were absent. Application and Workers type checks and added-file lint pass. Production domain routing and Git build integration remain pending; keep Vercel until those are verified.
+The staging homepage, geo search, and an example natal calculation returned 200. Server secrets were scanned against built client assets and were absent. Application and Workers type checks and added-file lint pass.
+
+Workers Builds is connected to `FreeAstroApi/open-chart`, from the migration branch until this change is reviewed and merged. The build command is `npm run build:vinext` and the deploy command is `npx cf deploy --prebuilt`; preview builds are disabled. The existing `FREE_ASTRO_API_KEY` remains an encrypted Worker secret. Switching the production branch to `main` is the final step after merge.
